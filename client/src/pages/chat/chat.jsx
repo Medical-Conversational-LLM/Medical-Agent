@@ -104,7 +104,11 @@ export function Chat() {
             />
           </div>
         </div>
-        <Customize settings={chat.settings} onUpdate={chat.updateSetting} />
+        {
+          /*
+<Customize settings={chat.settings} onUpdate={chat.updateSetting} />
+          */
+        }
       </div>
     </Layout>
   );

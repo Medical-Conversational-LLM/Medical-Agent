@@ -1,4 +1,4 @@
-name: self-rag
+name: self-reflective-llm
 channels:
   - conda-forge
   - defaults
