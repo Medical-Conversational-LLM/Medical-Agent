@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
-from web_api.controllers import get_conversations, post_conversation, create_user, get_conversation
+
+from api.controllers import get_conversations, post_conversation, create_user, get_conversation
 import os
 app = Flask(__name__)
 CORS(app)
