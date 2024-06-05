@@ -9,7 +9,7 @@ def check_attempts(input, graph: Graph):
 
     if attempts >= MAX_ATTEMPTS:
 
-        if (graph.get_memory("utility") > 3
+        if (type(graph.get_memory("utility")) is int and graph.get_memory("utility") > 3
            and (
                graph.get_memory("supported") == SupportedToken.PARTIAL
                or graph.get_memory("supported") == SupportedToken.FULL

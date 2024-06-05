@@ -13,10 +13,10 @@ from inference.groq import Groq
 from inference.pretrained import Pretrained
 from prompt.supported import SupportedToken
 from utils import should_continue
-inference = Groq(
-    api_key="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",
-    model="llama3-8b-8192",
-)
+# inference = Groq(
+#     api_key="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",
+#     model="llama3-8b-8192",
+# )
 critique_inference = Pretrained("HlaH/Llama3-ChatQA-Critic-PubMedQA")
 retrieval_inference = Pretrained("HlaH/Llama3-ChatQA-Retriever-PubMedQA")
 generator_inference = Pretrained("HlaH/Llama3-ChatQA-Generator-PubMedQA")

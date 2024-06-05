@@ -17,7 +17,7 @@ def critique_utility(input, graph: Graph):
         {
             "role": "system",
             "content": (
-                "This is a chat between a user and an artificial intelligence assistant in the medical field. ",
+                "This is a chat between a user and an artificial intelligence assistant in the medical field. "
                 "The assistant gives helpful, detailed answers to the user's questions.\n"
             ),
         },
