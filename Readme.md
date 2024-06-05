@@ -19,10 +19,7 @@ python create_medical_records_index.py
 ```
 ./server.sh prod
 ```
-## Background process
-```
-./server.sh prod &
-```
+ 
 
 
 # Test inference
@@ -37,11 +34,7 @@ cd client
 npm install
 npm run dev --  --host
 ```
-# log running process
-```
-npm run build
-npx serve ./dist &
-```
+ 
 
 # Workflow
 ![graph](assets/graph.svg)
