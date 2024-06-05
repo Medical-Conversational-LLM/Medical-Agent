@@ -27,7 +27,7 @@ requires node 16+
 ```
 cd client
 npm install
-npm run dev
+npm run dev --  --host
 ```
 
 # Workflow
