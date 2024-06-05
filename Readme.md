@@ -15,6 +15,14 @@ python create_medical_records_index.py
 ```
 ./server.sh
 ```
+## using gunicorn
+```
+./server.sh prod
+```
+## Background process
+```
+./server.sh prod &
+```
 
 
 # Test inference
@@ -28,6 +36,11 @@ requires node 16+
 cd client
 npm install
 npm run dev --  --host
+```
+# log running process
+```
+npm run build
+npx serve ./dist &
 ```
 
 # Workflow
