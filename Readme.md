@@ -5,12 +5,12 @@ Large language models (LLMs) have recently shown remarkable abilities in convers
 
 # Content
 
-#### [Setup & Installation](installation)
-#### [Self-Reflection Workflow](self-reflection-workflow)
-#### [Self-Reflection Tokens](self-reflection-tokens)
-#### [Self-Reflection Training](training)
-#### [Self-Reflection Evaluation](evaluation)
-#### [Level of Evidence](loe)
+#### [Setup](#setup-&-installation)
+#### [Self-Reflection Workflow](#self-reflection-workflow)
+#### [Self-Reflection Tokens](#self-reflection-tokens)
+#### [Self-Reflection Training](#self-reflection-training)
+#### [Self-Reflection Evaluation](#self-reflection-evaluation)
+#### [Level of Evidence](#level-of-evidence)
 
 # Setup & Installation
 
