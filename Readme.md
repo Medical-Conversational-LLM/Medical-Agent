@@ -52,11 +52,9 @@ npm run dev --  --host
 # Retrieval-augmented generation (RAG) models:
 
 Combining retrieval and generation to deliver contextually accurate responses.
-<h4>Retrieval phase:</h4>
-An algorithm finds relevant information from public sources like the internet or private documents based on the user’s question.
-<h4>Generation phase:</h4>
-The large language model (LLM) uses both the retrieved information and its own knowledge to form an answer.
-Often provides source links for transparency.
+
+<h4>Retrieval phase:</h4> an algorithm finds relevant information based on the user’s question. The source can be public information on internet (web search) or a set of specific documents.
+<h4>Generation phase:</h4> the LLM uses both the retrieved information and its own knowledge to form an answer. It can also provide source links for transparency.
 
 # RAG Implementation:
 
