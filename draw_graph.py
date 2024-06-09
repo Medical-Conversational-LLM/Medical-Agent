@@ -1,4 +1,4 @@
-from run import create_graph
+from lm.create_graph import create_graph
 from graph.graph import Edge
 import graphviz  
 from numpy import isscalar

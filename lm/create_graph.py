@@ -24,9 +24,6 @@ MIN_RELEVANT_TO_WEB_SEARCH = 7
 MIN_AVG_TO_WEB_SEARCH = 0.3
 
 
-# summarization_inference = inference
-
-
 def create_graph():
 
     graph = Graph()
@@ -168,10 +165,3 @@ def create_graph():
                    )
 
     return graph
-
-
-if __name__ == "__main__":
-    graph = create_graph()
-    result = graph.start("check_retrieval", {
-        "query": "what is cancer"
-    })

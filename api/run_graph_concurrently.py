@@ -2,7 +2,7 @@ if __name__ == "__main__":
     import sys
     sys.path.append(".")
 
-from run import create_graph
+from lm.create_graph import create_graph
 from threading import Thread
 from utils import ThreadStreamer
 

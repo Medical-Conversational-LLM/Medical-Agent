@@ -1,4 +1,6 @@
-
+"""
+This files is clean and fix invalid json structure from csv file ot produce a valid json syntax
+"""
 
 class Cleaner:
     pos = 0

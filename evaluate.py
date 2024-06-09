@@ -10,5 +10,7 @@ if __name__ == "__main__":
     # Convert the DataFrame to a Hugging Face Dataset
     # df = Dataset.from_pandas(df)
     df = df[0:10]
+    
 
     evaluate(df)
+    

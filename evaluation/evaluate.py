@@ -47,6 +47,12 @@ def postprocess_answer_option_conditioned(answer):
 
 
 def get_formatted_input(messages, context):
+
+                    # "Using the detailed information provided in the context below, "
+                    # "answer the question and generate a response that strictly adheres to this information. "
+                    # "Ensure that your answer is deeply grounded in the specifics of the context, "
+                    # "does not include extraneous details not supported by the context ."
+    
     prompt = [
         {
             "role": "system",
@@ -72,10 +78,30 @@ def get_formatted_input(messages, context):
             {
                 "role": "system",
                 "content": (
-                    "Using the detailed information provided in the context below, "
-                    "answer the question and generate a response that strictly adheres to this information. "
-                    "Ensure that your answer is deeply grounded in the specifics of the context, "
-                    "does not include extraneous details not supported by the context ."
+        f"""\
+
+        Each question below is accompanied by contextual information tagged with its specific Level of Evidence. As you formulate answers, please ensure that they are informed by and reflect the level of evidence provided.\
+
+        Question:Does a diet rich in antioxidants and low in saturated fats reduce the risk of Alzheimer's disease?\
+        Context: Level of Evidence 1. Research from controlled trials suggests that diets rich in antioxidants and low in saturated fats may help reduce the risk of cognitive decline and dementia.\
+        Answer with Source: Yes, a diet rich in antioxidants and low in saturated fats can reduce the risk of Alzheimer's disease. Such diets promote brain health by minimizing inflammation and oxidative stress, which are critical factors contributing to cognitive decline and the onset of Alzheimer's disease. Antioxidants help neutralize free radicals, while healthy fats support overall brain function and structure. Therefore, maintaining a diet with these characteristics can significantly mitigate the risk factors associated with Alzheimer's disease.\
+        [Source: Alzheimer's Association, 2021].\
+        
+        Levels of Evidence (LoE) Map : \ 
+        Level of Evidence 0 (1a) : Background information on the topic, sourced from systematic reviews of randomized controlled trials.\
+        Level of Evidence 1 (1b) : Data derived from individual randomized controlled trials.\
+        Level of Evidence 2 (2a) : Insights from systematic reviews of cohort studies.\
+        Level of Evidence 3 (2b) : Details from individual cohort studies or low-quality randomized controlled trials.\
+        Level of Evidence 4 (3a) : Information from systematic reviews of case-control studies.\
+        Level of Evidence 5 (3b) : Data from individual case-control studies.\
+        Level of Evidence 6 (4) : Observations from case series or poor quality cohort and case-control studies.\
+
+        
+        Use the following pieces of context given below, each tagged with their Level of Evidence (LoE) , Pay close attention to the LoE as it indicates the strength of the evidence behind the information.\
+        Start with a prediction based on the context provided , followed by a source, including the source name, publication date, and URL if applicable.\
+    
+        """
+        
                     "\n\n"
                     "Context:\n{context}"
                 ).format(context=context)
@@ -98,7 +124,7 @@ def get_formatted_input(messages, context):
     return prompt
 
 
-def call_model_rerank_w_scores_batch(prompt, evidences,  max_new_tokens=128,
+def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
                                      ret_tokens=None, rel_tokens=None, grd_tokens=None, ut_tokens=None,
                                      use_seqscore=False, threshold=0.5,
                                      w_rel=1.0, w_sup=1.0, w_use=0.5, mode="adaptive_retrieval", closed=False):
@@ -159,7 +185,12 @@ def call_model_rerank_w_scores_batch(prompt, evidences,  max_new_tokens=128,
             do_retrieve = "[Retrieval]" in pred_text
 
     if do_retrieve is True:
-        evidence_augmented_inputs = get_formatted_input(prompt, evidences)
+        
+        relevant_chunks= str(evidences)
+        stuffed_context_with_loe = "".join(
+            f"Level of Evidence {int(loe) if pd.notna(loe) else 'Unknown'} , {relevant_chunks}"
+        )
+        evidence_augmented_inputs = get_formatted_input(prompt, stuffed_context_with_loe)
 
         model = get_model(GENERATOR_MODEL_ID)
         print('evidence_augmented_inputs',evidence_augmented_inputs)
@@ -305,8 +336,9 @@ def run_pipeline(df, ret_tokens, rel_tokens, grd_tokens=None, ut_tokens=None, ma
         prompt = row["question"]
 
         evidences = fix_context(row["context"])
+        loe=row["loe"]
 
-        answer, res, retrieved = call_model_rerank_w_scores_batch(prompt, evidences,  max_new_tokens=max_new_tokens,
+        answer, res, retrieved = call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=max_new_tokens,
                                                                   ret_tokens=ret_tokens, rel_tokens=rel_tokens, grd_tokens=grd_tokens, ut_tokens=ut_tokens,
                                                                   use_seqscore=use_seqscore, threshold=threshold,
                                                                   w_rel=w_rel, w_sup=w_sup, w_use=w_use, mode=mode, closed=closed)
@@ -340,6 +372,12 @@ def fix_context(value):
 
 
 def evaluate(df):
+    # Specify the desired high LoE level (e.g., 3 for Level of Evidence 3)
+    high_loe = 2
+
+    # Filter the dataset based on the high LoE level
+    df = filter_by_high_loe(df, high_loe)
+
     df['context'] = df['context'].apply(fix_context)
     print('context 000 ',df['context'][5])
 
@@ -353,3 +391,22 @@ def evaluate(df):
     accuracy = run_pipeline(df, ret_tokens, rel_tokens, grd_tokens, ut_tokens, max_new_tokens=128,
                             use_seqscore=False, threshold=0.5, w_rel=1.0, w_sup=1.0, w_use=0.5, mode="adaptive_retrieval", closed=True)
     print(f"Task , completed with accuracy: {accuracy:.4f}")
+
+
+import pandas as pd
+
+def filter_by_high_loe(df, high_loe):
+    # Drop rows with NaN values in the 'loe' column
+    df = df.dropna(subset=['loe'])
+    
+    # Convert the 'loe' column to numeric type, coercing errors to NaN
+    df['loe'] = pd.to_numeric(df['loe'], errors='coerce')
+
+    print(df['loe'] ,high_loe)
+    
+    # Filter the DataFrame based on the desired LoE level
+    filtered_df = df[df['loe'].astype(float) <= high_loe]  # Use float for comparison
+    
+    return filtered_df
+
+
