@@ -1,7 +1,6 @@
 # Medical Conversational Evidence Based Self-reflection Agents
 
-Large language models (LLMs) have recently shown remarkable abilities in conversational question answering and generating human-like text, leading to growing interest in their healthcare applications. Despite not being specifically designed for medical use, LLMs have the potential to transform care delivery by improving patient report documentation, enhancing diagnostic accuracy, and supporting various clinical tasks.
-
+Large language models (LLMs) have recently shown capabilities in answering conversational questions and generating human-like text, which led to interest in healthcare applications. Although not designed specifically for clinical use, it have the potential to transform healthcare delivery by improving documentation of patient reports, enhancing diagnostic accuracy, and supporting various clinical tasks.
 
 # Content
 
@@ -49,6 +48,27 @@ npm run dev --  --host
 # Self-Reflection Workflow
 ![graph](assets/graph.svg)
 
+# Self-Reflection Training
+
+training a Language Model (LLM) to generate self-reflection tokens that govern various stages in the Self-Retrieval-Augmented Generation process.
+
+The training process involves three models: Retriever, Critic, and Generator, beginning with a dataset of prompts and responses, enhanced by reflection and critique tokens.
+
+<h3>Retriever</h3>
+<h4>Retriever Data Creation:</h4> Generating training data for the Retriever model using GPT-4.
+<h4>Retriever Training:</h4> Training the Retriever model with new special tokens [Retrieve Token].
+
+<h3>Critic</h3>
+<h4>Critic Data Creation:</h4> Generating training data for the Critic model using GPT-4.
+<h4>Critic Training:</h4> Training the Critic model with new special tokens[ISREL Token][ISSUP Token][ISUSE Token].
+
+<h3>Generator</h3>
+<h4>Generator Data Creation:</h4> Generating data for the Generator model using a yes/no question-and-answer dataset "Qianjin/PubMedQA dataset" and enhance it into open-ended questions using GPT-4.
+<h4>Generator Training:</h4> Training the Generator model with new dataset.
+
+you can download our training data at here.
+
+
 # Self-Reflection Tokens
 
 <table style="font-size:12px;">
@@ -84,38 +104,25 @@ npm run dev --  --host
   </tr>
 </table>
 
-# Self-Reflection Training
-
-training a Language Model (LLM) to generate self-reflection tokens that govern various stages in the Self-Retrieval-Augmented Generation process.
-
-The training process involves three models: Retriever, Critic, and Generator, beginning with a dataset of prompts and responses, enhanced by reflection and critique tokens.
-
-1- Retriever Data Creation: Generating training data for the Retriever model using GPT-4.
-2- Critic Data Creation: Generating training data for the Critic model using GPT-4.
-3- Critic Training: Training the Critic model with new special tokens.
-4- Generator Data Creation: Generating training data for the Generator model using outputs from the Critic and Retriever models.
-5- Generator Training: Training the Generator model with new special tokens.
-
-
 # Self-Reflection Evaluation
 
-The evaluation process assessed the model's ability to generate accurate and relevant responses by testing it with questions and corresponding contexts. Responses were generated and evaluated based on their relevance, grounding in the provided context, and overall utility. 
+The evaluation process evaluate the model's ability to generate accurate and relevant responses.
 
-<h4>1- Prompt and Context Formatting:</h4>  Each evaluation instance began with a specific question (prompt) and, where applicable, relevant contextual information. The input was carefully formatted to ensure clarity and to guide the model in adhering strictly to the given context.
+<h4>Prompt and Context Setup:</h4> The evaluation starts with a question (the prompt) and any available relevant information.
 
-<h4>2- Initial Response Generation:</h4> The model was first tested to determine if additional information was required to generate a comprehensive response. This was facilitated by a preliminary retrieval step where the model decided between "[Retrieval]" and "[No Retrieval]" based on the necessity of additional context.
+<h4>Initial Response Generation:</h4> The model checks if it needs additional information to give a full answer. It decides whether to use "[Retrieval]" or "[No Retrieval]" based on whether more context is needed.
 
-<h4>3- Retrieval Decision and Response Generation:</h4> If the model determined that additional context was needed ("[Retrieval]"), it would retrieve the necessary information and generate a response grounded in this enriched context. If not ("[No Retrieval]"), the response was generated based on the initial prompt alone.
+<h4>Retrieval Decision and Response:</h4> If the model needs additional information/ context ("[Retrieval]"), it retrieves the information and uses it to generate a response grounded in the context. If not ("[No Retrieval]"), it answers based on the initial question.
 
-<h4>4- Scoring and Evaluation:</h4> Responses were evaluated using predefined metrics to determine relevance, support, and utility. Scores were calculated to assess how well the responses matched the provided context and accurately answered the prompts.Cosine similarity and log probability scores were computed to further evaluate the quality of the responses.
+<h4>Scoring and Evaluation:</h4> The responses are scored based on relevance, support, and usefulness. These scores show how well the answers match the provided context and address the questions. Cosine similarity and log probability scores are also used to assess the quality of the responses.
 
-- Cosine Similarity Calculation: Cosine similarity is a measure used to determine the similarity between two vectors, in this case, the vectors representing the generated response and the ground truth. It is calculated as the cosine of the angle between the vectors, indicating how closely aligned they are in the vector space. Higher cosine similarity values suggest greater similarity between the responses.
+ - Cosine Similarity: This measures how similar the generated response is to the correct answer by comparing them as vectors.
 
-- Log Probability: Log probability scores provide additional insights into the likelihood of the generated response given the context and prompt. Higher log probability scores indicate that the model is more confident in its generated response.
+ - Log Probability: This gives insights into how likely the generated response is given the context and the prompt.
 
-<h4>5- Accuracy Calculation:</h4> The overall performance was summarized by calculating the accuracy of the responses.This was done by comparing the generated answers with the expected ones.
+<h4>Accuracy Calculation:</h4>The overall performance is summarized by calculating the accuracy of the responses. This is done by comparing the generated answers with the expected ones.
 
-<h4>Example Evaluation Results for the Relationship Between Breath Methane Positivity and Delayed Transit Constipation : </h4>
+Example Evaluation Results for the Relationship Between Breath Methane Positivity and Delayed Transit Constipation :
 
 | Question                                                                                                  | Prediction                                                                                               | Ground Truth                                                                                                                                                       | Cosine Similarity        |
 |----------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
@@ -123,6 +130,6 @@ The evaluation process assessed the model's ability to generate accurate and rel
 
 
 # Level of Evidence 
-To evaluate how Level of Evidence (LoE) can enhance the trustworthiness and reliability of the model,I use the "Qianjin/PubMedQA dataset", which was augmented with Levels of Evidence (LoE) to train a custom model. This dataset integration was essential for providing a robust training framework . 
+To see how the Level of Evidence (LoE) can improve the trustworthiness and reliability of our self-reflection model results, we used the "Qianjin/PubMedQA" dataset, which we enhanced with LoE from the PubMed dataset.
 
-you can download our training data at here.
+Following our self-reflection evaluation process, we measured overall performance by calculating the accuracy of responses. We compared the model's generated answers with the expected ones, both with and without the LoE augmentation, to see the differences in the model's results.
