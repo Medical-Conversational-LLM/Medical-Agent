@@ -45,8 +45,33 @@ npm install
 npm run dev --  --host
 ```
 
+
+# Retrieval-augmented generation (RAG) models:
+
+Combining retrieval and generation to deliver contextually accurate responses.
+<h4>Retrieval phase:</h4>
+An algorithm finds relevant information from public sources like the internet or private documents based on the user’s question.
+<h4>Generation phase:</h4>
+The large language model (LLM) uses both the retrieved information and its own knowledge to form an answer.
+Often provides source links for transparency.
+
+# RAG Implementation:
+
+<h4>Sentence Transformers:</h4>
+Encode input sentences into embeddings.
+<h4>hnswlib:</h4>
+Create an index for efficient similarity search in high-dimensional spaces.
+<h4>Nearest neighbor searches:</h4>
+Perform searches using a pre-saved search index based on query embeddings.
+<h4>Re-ranking:</h4>
+Retrieved chunks are re-ranked for relevance using a cross-encoder model.
+
+# RAG Workflow
+![graph](assets/RAG.svg)
+
+
 # Self-Reflection Workflow
-![graph](assets/graph.svg)
+![graph-rag](assets/graph.png)
 
 # Self-Reflection Training
 
@@ -67,6 +92,7 @@ The training process involves three models: Retriever, Critic, and Generator, be
 <h4>Generator Training:</h4> Training the Generator model with new dataset.
 
 you can download our training data at here.
+
 
 
 # Self-Reflection Tokens
