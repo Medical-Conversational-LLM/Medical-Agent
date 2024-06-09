@@ -3,8 +3,11 @@
 Large language models (LLMs) have recently shown capabilities in answering conversational questions and generating human-like text, which led to interest in healthcare applications. Although not designed specifically for clinical use, it have the potential to transform healthcare delivery by improving documentation of patient reports, enhancing diagnostic accuracy, and supporting various clinical tasks.
 
 # Content
-
-#### [Setup](#setup-&-installation)
+#### [Setup](#setup)
+#### [RAG](Retrieval-augmented-generation-(RAG)-models)
+#### [RAG Implementation](rag-implementation)
+#### [RAG Workflow](rah-workflow)
+#### [Self Reflection](self-reflection)
 #### [Self-Reflection Workflow](#self-reflection-workflow)
 #### [Self-Reflection Tokens](#self-reflection-tokens)
 #### [Self-Reflection Training](#self-reflection-training)
@@ -67,11 +70,13 @@ Perform searches using a pre-saved search index based on query embeddings.
 Retrieved chunks are re-ranked for relevance using a cross-encoder model.
 
 # RAG Workflow
-![graph](assets/RAG.svg)
+![graph-rag](assets/RAG.png)
 
+# Self-Reflection
+By incorporating self-reflection mechanisms to the Retrieval-Augmented Generation (RAG) framework, we aiming to enhances the quality and coherence of the text it generates. This approach enables AI models to evaluate their own output and refine it over time through self-evaluation. 
 
 # Self-Reflection Workflow
-![graph-rag](assets/graph.png)
+![graph](assets/graph.svg)
 
 # Self-Reflection Training
 
