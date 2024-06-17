@@ -1,4 +1,4 @@
-# Medical Conversational Evidence Based Self-reflection Agents
+# Medical Conversational Evidence Based Self-reflection
 
 Large language models (LLMs) have recently shown capabilities in answering conversational questions and generating human-like text, which led to interest in healthcare applications. Although not designed specifically for clinical use, it have the potential to transform healthcare delivery by improving documentation of patient reports, enhancing diagnostic accuracy, and supporting various clinical tasks.
 
