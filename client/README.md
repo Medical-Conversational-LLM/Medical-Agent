@@ -1,7 +1,7 @@
 ## Front-End Architecture Overview
 ### ⚛️ [React](https://react.dev/)
-
-The front-end architecture of the application is designed to provide a cohesive and interactive chat interface for users. Here’s an overview of its key components and functionalities:
+### Medical Conversational Evidence Based ChatBot
+The front-end architecture of the application is designed to facilitate a user-friendly and interactive chat interface. Here’s an overview of its key components and functionalities:
 
 ### Component Structure
 
