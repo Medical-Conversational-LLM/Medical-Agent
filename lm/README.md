@@ -2,7 +2,7 @@
 
 #### [RAG](#Retrieval-augmented-generation-RAG-models)
 #### [RAG Implementation](#rag-implementation)
-#### [RAG Workflow](#rah-workflow)
+#### [RAG Workflow](#rag-workflow)
 #### [Self Reflection](#self-reflection)
 #### [Self Reflection Workflow](#self-reflection-workflow)
 #### [Self Reflection Tokens](#self-reflection-tokens)
@@ -28,7 +28,7 @@ Retrieved chunks are re-ranked for relevance using a cross-encoder model.
 By incorporating self-reflection mechanisms to the Retrieval-Augmented Generation (RAG) framework, we aiming to enhances the quality and coherence of the text it generates. This approach enables AI models to evaluate their own output and refine it over time through self-evaluation. 
 
 # Self Reflection Workflow
-![graph](../assets/graph.svg)
+![graph](../assets/self-reflection.png)
 
 # Self Reflection Training
 
