@@ -22,13 +22,13 @@ Perform searches using a pre-saved search index based on query embeddings.
 Retrieved chunks are re-ranked for relevance using a cross-encoder model.
 
 # RAG Workflow
-![graph-rag](../assets/RAG.png)
+<img src="../assets/RAG.png" alt="graph" width="600"/>
 
 # Self Reflection
 By incorporating self-reflection mechanisms to the Retrieval-Augmented Generation (RAG) framework, we aiming to enhances the quality and coherence of the text it generates. This approach enables AI models to evaluate their own output and refine it over time through self-evaluation. 
 
 # Self Reflection Workflow
-![graph](../assets/self-reflection.png)
+<img src="../assets/self-reflection-1.png" alt="graph" width="600"/>
 
 # Self Reflection Training
 
