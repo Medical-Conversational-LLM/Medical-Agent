@@ -10,6 +10,11 @@
 #### [Self Reflection Evaluation](#self-reflection-evaluation)
 #### [Level of Evidence](#level-of-evidence)
 
+
+
+# RAG:
+RAG models combine retrieval and generation to provide contextually accurate responses .
+
 # RAG Implementation:
 
 <h4>Sentence Transformers:</h4>
