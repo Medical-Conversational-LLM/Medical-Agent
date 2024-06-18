@@ -41,9 +41,15 @@ const readChunk = (reader, onFinish, onMessage) => {
         console.log("Stream finished");
         return;
       }
-      const chunkString = new TextDecoder()
+      let chunkString = new TextDecoder()
         .decode(value)
-        .substring("data: ".length - 1);
+
+        chunkString = chunkString.split("\n");
+        chunkString = chunkString.filter(item => Boolean(item?.trim?.()))
+        chunkString = chunkString[chunkString.length - 1]
+    
+        chunkString = chunkString.substring("data: ".length - 1);
+
       onMessage(safeJSONParse(chunkString, chunkString));
       readChunk(reader, onFinish, onMessage);
     })

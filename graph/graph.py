@@ -2,7 +2,7 @@ import types
 from typing import TypedDict, Callable, Any
 import inspect
 import time
-
+from logger import logger
 
 class Node(TypedDict):
     name: str
@@ -19,7 +19,7 @@ class Edge(TypedDict):
 
 class NullStreamer:
     def put(self, item):
-        print(item)        
+        logger.info("[STREAM]: {}".format(item))        
 
     def get(self):
         pass
@@ -90,7 +90,7 @@ class Graph:
         if node is None:
             raise ValueError("node [{}] not found".format(name))
         self.current_node_name = name
-        print("running {}".format(name))
+        logger.info("running {}".format(name))
 
         result = self.run_node(node, input)
  

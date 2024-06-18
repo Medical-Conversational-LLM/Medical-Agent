@@ -24,11 +24,26 @@ def get_user_conversations():
     user = resolve_user_from_request()
 
     Conversation = Query()
-
     conversations = conversations_table.search(
         Conversation.user_id == user["id"])
+    
     conversations.reverse()
 
+    conversations = conversations[0:20]
+    
+    return [conversation_from_record(conversation) for conversation in conversations]
+
+def get_user_conversation(user_id):
+    user = resolve_user_from_request()
+
+    Conversation = Query()
+    conversations = conversations_table.search(
+        Conversation.user_id == user["id"])
+    
+    conversations.reverse()
+
+    conversations = conversations[0:20]
+    
     return [conversation_from_record(conversation) for conversation in conversations]
 
 
@@ -99,8 +114,6 @@ def create_message(content: str, conversation_id, user_id=None):
         "user_id": user_id,
         "conversation_id": conversation_id,
         "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
-
-
     })
 
     message = messages_table.get(doc_id=int(id))

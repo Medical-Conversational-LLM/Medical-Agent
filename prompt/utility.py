@@ -8,6 +8,7 @@ UTILITY_EXPLAINATION_SUMMARY_TITLE = (
     "from 1 (lowest) - 5 (highest)"
 )
 
+
 OUTPUT_INSTRUCTIONS = (
     "Given an Input and an Output, rate whether the response appears to be a helpful and informative answer to the query, from 1 (lowest) - 5 (highest). We call this score perceived utility.\n[Utility:5]: The response provides a complete, highly detailed, and informative response to the query, fully satisfying the information needs.Do not provide explanations on your judgement\n"
     "[Utility:4]: The response mostly fulfills the need in the query, while there can be some minor improvements such as discussing more detailed information, having better structure of the response, or improving coherence. \n"

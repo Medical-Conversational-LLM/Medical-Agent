@@ -18,6 +18,7 @@ def accuracy(preds, labels):
     print('preds, labels ===========', preds, labels)
     match_count = 0
     for pred, label in zip(preds, labels):
+        print(' pred = ' ,  pred,'\n \n label =',  label  ,'label[0]' ,label[0])
         target = label[0]
         print("LABEL:{}".format(label))
         print("PRED:{}".format(pred))
@@ -85,9 +86,8 @@ def find_entity_tags(sentence):
             results[entity] = tag
     return results
 
-
-def match(prediction,ground_truth,threshold=0.5):
-    print('prediction = ',prediction,'ground_truth = ',ground_truth)
+#semantic similarity
+def similarity(prediction,ground_truth,threshold=0.5):
     # Load pre-trained BERT model
     model = SentenceTransformer('paraphrase-distilroberta-base-v1')
 
@@ -105,12 +105,12 @@ def match(prediction,ground_truth,threshold=0.5):
 
 
 
-# def match(prediction, ground_truth):
-#     for gt in ground_truth:
-#         print('gt' , gt)
-#         if gt in prediction:
-#             return 1
-#     return 0
+def match(prediction, ground_truth):
+    for gt in ground_truth:
+        print('gt' , gt)
+        if gt in prediction:
+            return 1
+    return 0
 
 # def match(prediction,ground_truth,threshold=0.8):
 

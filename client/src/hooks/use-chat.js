@@ -14,7 +14,7 @@ const createMessage = (content, me = false) => {
   };
 };
 
-const getChatQueryKey = (id) => ["chat", id];
+const getChatQueryKey = (id) => ["chat", String(id)];
 
 export function useChat(chatId) {
   const [messageDict, setMessageDict] = useState({});
@@ -66,9 +66,14 @@ export function useChat(chatId) {
       }
       return acc;
     }, {});
+    
 
-    queryClient.setQueryData(getChatQueryKey(chatId), (data) => {
-      return {
+    console.log("chatId", chatId)
+
+    queryClient.setQueryData(getChatQueryKey(chatId), (data) => { 
+
+      console.log("UPDATING" ,dict, data)
+      const final = {
         ...data,
         messages: data.messages.map((message) => {
           if (!dict[message.id]) {
@@ -80,7 +85,10 @@ export function useChat(chatId) {
             ...dict[message.id],
           };
         }),
-      };
+      }
+
+      console.log("UPDATED", final)
+      return final;
     });
   };
 
@@ -106,6 +114,7 @@ export function useChat(chatId) {
         console.log("message", message);
 
         setLastMessageState(undefined);
+
         if (!message || typeof message !== "object") {
           return;
         }
@@ -119,11 +128,11 @@ export function useChat(chatId) {
               },
               ...chats,
             ]);
-
+ 
             botMessage = {
               ...botMessage,
               oldId: botMessage.id,
-              ...message.message,
+              ...message.response_message,
             };
 
             queryClient.setQueryData(
@@ -137,6 +146,7 @@ export function useChat(chatId) {
             }));
 
             navigate(`/chat/${message.id}`);
+
             queryClient.setQueryData(getChatQueryKey(chatId), null);
 
             setIsSendingDict((dict) => ({
@@ -153,6 +163,7 @@ export function useChat(chatId) {
               ...botMessage,
               content: botMessage.content + message.message,
             };
+            console.log("botMessage", botMessage)
             updateMessages(chatId, [botMessage]);
             break;
           default:
@@ -164,6 +175,7 @@ export function useChat(chatId) {
     setIsSendingDict((dict) => ({ ...dict, [chatId]: false }));
     setMessageDict((dict) => deleteFromDict(dict, chatId, undefined));
   };
+ 
 
   return {
     onSubmit,

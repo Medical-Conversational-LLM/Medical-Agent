@@ -9,6 +9,7 @@ from utils import ThreadStreamer
 
 def run_graph_concurrently(
     query: str,
+    chat_history,
     temperature=0.7,
     top_k=0.1,
     top_p=20,
@@ -17,8 +18,12 @@ def run_graph_concurrently(
     graph = create_graph()
     graph.streamer = ThreadStreamer()
 
-    thread = Thread(target=graph.start, args=(
-        "check_retrieval", {"query": query}))
+    input_data = {
+        "query": query,
+        "chat_history": chat_history
+    }
+
+    thread = Thread(target=graph.start, args=("check_retrieval", input_data))
 
     thread.start()
 

@@ -2,7 +2,8 @@ from flask import Flask
 from flask_cors import CORS
 
 from api.controllers import get_conversations, post_conversation, create_user, get_conversation
-import os
+from logger import profiler
+
 app = Flask(__name__)
 CORS(app)
 
@@ -24,3 +25,7 @@ def create_user_route():
 @app.route('/conversations/<int:conversation_id>', methods=['GET'])
 def get_converastion_route(conversation_id):
     return get_conversation(conversation_id)
+
+
+profiler.profile("TIME TAKEN TO START: ")
+

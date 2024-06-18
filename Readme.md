@@ -2,6 +2,8 @@
 
 Large language models (LLMs) have recently shown remarkable abilities in conversational question answering and generating human-like text, leading to growing interest in their healthcare applications. Despite not being specifically designed for medical use, LLMs have the potential to transform care delivery by improving patient report documentation, enhancing diagnostic accuracy, and supporting various clinical tasks.
 
+# Demo:
+http://134.91.35.190:8040/
 
 # Content
 

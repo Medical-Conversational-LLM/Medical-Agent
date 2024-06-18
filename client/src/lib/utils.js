@@ -11,6 +11,7 @@ export function wait(timeMS) {
 
 export function safeJSONParse(json, defaultValue) {
   try {
+
     return JSON.parse(json);
   } catch (error) {
     return defaultValue;

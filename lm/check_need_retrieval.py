@@ -16,6 +16,7 @@ def check_need_retrieval(input, graph:Graph):
     ]
 
     result = inference.completion(prompt)
+    print('Retrieval =' , result)
 
     if "query" not in input or input["query"] is None:
         raise ValueError("query is required")

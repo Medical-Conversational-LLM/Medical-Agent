@@ -24,8 +24,8 @@ export function ChatSuggestions({
             <div className="text-4xl lg:text-6xl font-black text-primary">
               Hallo !!
             </div>
-            <div className="text-4xl lg:text-6xl text-muted-foreground font-light">
-              Welcome to <span className="font-black ">HlaGPT</span>
+            <div className="text-2xl lg:text-4xl text-muted-foreground font-light">
+              Medical Search Engine
             </div>
           </div>
         </div>

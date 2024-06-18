@@ -4,12 +4,14 @@ import torch
 import numpy as np
 from tqdm import tqdm
 import ast
+import pandas as pd
 
 from .metrics import match
 from .utils import control_tokens
 
 GENERATOR_MODEL_ID = 'HlaH/Llama3-ChatQA-Generator-PubMedQA'
 RETRIEVER_MODEL_ID = 'HlaH/Llama3-ChatQA-Retriever-PubMedQA'
+CRITIQUE_MODEL_ID = 'HlaH/Llama3-ChatQA-Critic-PubMedQA'
 
 seed = 633
 torch.backends.cudnn.deterministic = True
@@ -18,8 +20,10 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
 
- 
+
 model_cache = {}
+
+
 def get_model(model_id):
 
     if model_id in model_cache:
@@ -30,6 +34,7 @@ def get_model(model_id):
     model_cache[model_id] = model
 
     return model
+
 
 def postprocess_answer_option_conditioned(answer):
     for token in control_tokens:
@@ -48,11 +53,11 @@ def postprocess_answer_option_conditioned(answer):
 
 def get_formatted_input(messages, context):
 
-                    # "Using the detailed information provided in the context below, "
-                    # "answer the question and generate a response that strictly adheres to this information. "
-                    # "Ensure that your answer is deeply grounded in the specifics of the context, "
-                    # "does not include extraneous details not supported by the context ."
-    
+    # "Using the detailed information provided in the context below, "
+    # "answer the question and generate a response that strictly adheres to this information. "
+    # "Ensure that your answer is deeply grounded in the specifics of the context, "
+    # "does not include extraneous details not supported by the context ."
+
     prompt = [
         {
             "role": "system",
@@ -78,7 +83,7 @@ def get_formatted_input(messages, context):
             {
                 "role": "system",
                 "content": (
-        f"""\
+                    f"""\
 
         Each question below is accompanied by contextual information tagged with its specific Level of Evidence. As you formulate answers, please ensure that they are informed by and reflect the level of evidence provided.\
 
@@ -101,7 +106,7 @@ def get_formatted_input(messages, context):
         Start with a prediction based on the context provided , followed by a source, including the source name, publication date, and URL if applicable.\
     
         """
-        
+
                     "\n\n"
                     "Context:\n{context}"
                 ).format(context=context)
@@ -124,10 +129,10 @@ def get_formatted_input(messages, context):
     return prompt
 
 
-def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
+def call_model_rerank_w_scores_batch(prompt, evidences, loe,  max_new_tokens=128,
                                      ret_tokens=None, rel_tokens=None, grd_tokens=None, ut_tokens=None,
                                      use_seqscore=False, threshold=0.5,
-                                     w_rel=1.0, w_sup=1.0, w_use=0.5, mode="adaptive_retrieval", closed=False):
+                                     w_rel=1.0, w_sup=1.0, w_use=0.5, mode="always_retrieve", closed=False):
     results = {}
     if mode != "always_retrieve":
         print('--not always_retrieve')
@@ -137,12 +142,11 @@ def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
         model = get_model(RETRIEVER_MODEL_ID)
 
         pred_text, output = model.completion(
-            formatted_input, output_scores=True,max_new_tokens=max_new_tokens)
- 
- 
-        pred_log_probs = output.scores[0] 
+            formatted_input, output_scores=True, max_new_tokens=max_new_tokens)
+
+        pred_log_probs = output.scores[0]
         results["no_retrieval"] = pred_text
- 
+
     if mode == "always_retrieve":
         print('--always_retrieve')
         do_retrieve = True
@@ -151,8 +155,8 @@ def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
         print('--no_retrieval')
         do_retrieve = False
 
-    if pred_text.strip() == '[Retrieval]':
-        print('--use Retriver !!!!  ',pred_text.strip())
+    elif pred_text.strip() == '[Retrieval]':
+        print('--use Retriver !!!!  ', pred_text.strip())
         do_retrieve = True
     elif pred_text.strip() == '[No Retrieval]':
         print('--use No Retriver ')
@@ -168,7 +172,7 @@ def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
         do_retrieve = score_dict["[Retrieval]"] > score_dict["[No Retrieval]"]
     elif 'Retrieval' not in pred_text.strip():
         do_retrieve = True
-            
+
     else:
         print('--use threshold ')
         if threshold is not None:
@@ -178,25 +182,33 @@ def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
                     score_dict[tok] = -100
                 prob = pred_log_probs[0][id]
                 score_dict[tok] = float(prob.mean().item())
-          
+
             do_retrieve = score_dict["[Retrieval]"] / (
                 score_dict["[Retrieval]"] + score_dict["[No Retrieval]"]) > threshold
         else:
             do_retrieve = "[Retrieval]" in pred_text
 
     if do_retrieve is True:
-        
-        relevant_chunks= str(evidences)
+
+        relevant_chunks = str(evidences)
         stuffed_context_with_loe = "".join(
             f"Level of Evidence {int(loe) if pd.notna(loe) else 'Unknown'} , {relevant_chunks}"
         )
-        evidence_augmented_inputs = get_formatted_input(prompt, stuffed_context_with_loe)
+        evidence_augmented_inputs = get_formatted_input(
+            prompt, stuffed_context_with_loe)
 
         model = get_model(GENERATOR_MODEL_ID)
-        print('evidence_augmented_inputs',evidence_augmented_inputs)
+ 
+        answer, preds = model.completion(
+            evidence_augmented_inputs, output_scores=True, max_new_tokens=max_new_tokens)
+        
+        critique_model = get_model(CRITIQUE_MODEL_ID)
+        
+        pred, preds = critique_model.completion(
+              get_formatted_input(answer, stuffed_context_with_loe), output_scores=True, max_new_tokens=max_new_tokens)
+        
 
-        pred, preds = model.completion(
-            evidence_augmented_inputs, output_scores=True,max_new_tokens=max_new_tokens)
+        print("pred", pred)
 
         relevance_score_dict = {}
         grd_score_dict = {}
@@ -229,6 +241,9 @@ def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
             if grd_tokens is not None:
                 groundness_token_appear_indices = [tok_idx for tok_idx, tok in enumerate(
                     pred_token_ids) if tok in grd_tokens.values()]
+                
+                print("groundness_token_appear_indices", groundness_token_appear_indices)
+
                 if groundness_token_appear_indices:
                     idx = groundness_token_appear_indices[0]
                     for token, token_id in grd_tokens.items():
@@ -250,7 +265,7 @@ def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
 
             relevance_score = relevance_score_dict[p_idx].get(
                 "[Relevant]", 0) / max(np.sum(list(relevance_score_dict[p_idx].values())), 1)
-
+            print(grd_score_dict)
             if len(grd_score_dict[p_idx]) == 3:
                 gt_sum = np.sum(list(grd_score_dict[p_idx].values()))
                 ground_score = (grd_score_dict[p_idx].get("[Fully supported]", 0) / gt_sum) + 0.5 * (
@@ -285,7 +300,7 @@ def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
                                      "relevance_score_dict": relevance_score_dict,
                                      "grd_score_dict": grd_score_dict,
                                      "ut_score_dict": utility_score}
-
+        print('overall_scores', overall_scores)
         results = {"retrieval_{}".format(
             p_idx): {"pred": pred_text, "score": final_score} for p_idx in overall_scores}
     else:
@@ -295,8 +310,8 @@ def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
 
         model = get_model(GENERATOR_MODEL_ID)
 
-        pred, output = model.completion(formatted_input, output_scores=True,max_new_tokens=max_new_tokens)
- 
+        pred, output = model.completion(
+            formatted_input, output_scores=True, max_new_tokens=max_new_tokens)
 
     if len(results) == 1:
         return pred, results, do_retrieve
@@ -326,7 +341,7 @@ def call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=128,
 
 
 def run_pipeline(df, ret_tokens, rel_tokens, grd_tokens=None, ut_tokens=None, max_new_tokens=128, use_seqscore=False, threshold=0.5,
-                 w_rel=1.0, w_sup=1.0, w_use=0.5, mode="adaptive_retrieval", closed=False):
+                 w_rel=1.0, w_sup=1.0, w_use=0.5, mode="always_retrieve", closed=False):
 
     correct = 0
     no_retrieval = 0
@@ -336,9 +351,9 @@ def run_pipeline(df, ret_tokens, rel_tokens, grd_tokens=None, ut_tokens=None, ma
         prompt = row["question"]
 
         evidences = fix_context(row["context"])
-        loe=row["loe"]
+        loe = row["loe"]
 
-        answer, res, retrieved = call_model_rerank_w_scores_batch(prompt, evidences,loe,  max_new_tokens=max_new_tokens,
+        answer, res, retrieved = call_model_rerank_w_scores_batch(prompt, evidences, loe,  max_new_tokens=max_new_tokens,
                                                                   ret_tokens=ret_tokens, rel_tokens=rel_tokens, grd_tokens=grd_tokens, ut_tokens=ut_tokens,
                                                                   use_seqscore=use_seqscore, threshold=threshold,
                                                                   w_rel=w_rel, w_sup=w_sup, w_use=w_use, mode=mode, closed=closed)
@@ -358,6 +373,7 @@ def run_pipeline(df, ret_tokens, rel_tokens, grd_tokens=None, ut_tokens=None, ma
 
     print(
         f"Total: {total}, Correct: {correct}, Accuracy: {acc:.4f}, No Retrievals: {no_retrieval_pct:.4f}")
+    
     return acc
 
 
@@ -366,20 +382,21 @@ def fix_context(value):
         value = ast.literal_eval(value)
 
         return "\n\n".join(value)
-    
+
     except:
         return value
 
 
-def evaluate(df):
+def evaluate_self_reflection(df):
     # Specify the desired high LoE level (e.g., 3 for Level of Evidence 3)
-    high_loe = 2
+    torch.cuda.empty_cache()
 
     # Filter the dataset based on the high LoE level
-    df = filter_by_high_loe(df, high_loe)
+    # df = filter_by_high_loe(df, high_loe)
+
+    # print('df with loe ====' , len(df) , df )
 
     df['context'] = df['context'].apply(fix_context)
-    print('context 000 ',df['context'][5])
 
     ret_tokens = {"[Retrieval]": 1, "[No Retrieval]": 2}
     rel_tokens = {"[Relevant]": 3, "[Irrelevant]": 4}
@@ -389,24 +406,22 @@ def evaluate(df):
                  "[Utility:3]": 10, "[Utility:4]": 11, "[Utility:5]": 12}
 
     accuracy = run_pipeline(df, ret_tokens, rel_tokens, grd_tokens, ut_tokens, max_new_tokens=128,
-                            use_seqscore=False, threshold=0.5, w_rel=1.0, w_sup=1.0, w_use=0.5, mode="adaptive_retrieval", closed=True)
+                            use_seqscore=False, threshold=0.5, w_rel=1.0, w_sup=1.0, w_use=0.5, mode="always_retrieve", closed=True)
     print(f"Task , completed with accuracy: {accuracy:.4f}")
 
-
-import pandas as pd
 
 def filter_by_high_loe(df, high_loe):
     # Drop rows with NaN values in the 'loe' column
     df = df.dropna(subset=['loe'])
-    
+
     # Convert the 'loe' column to numeric type, coercing errors to NaN
     df['loe'] = pd.to_numeric(df['loe'], errors='coerce')
 
-    print(df['loe'] ,high_loe)
-    
     # Filter the DataFrame based on the desired LoE level
-    filtered_df = df[df['loe'].astype(float) <= high_loe]  # Use float for comparison
-    
+    # Use float for comparison
+    filtered_df = df[df['loe'].astype(float) <= high_loe]
+
+    print('df len  = ', len(df['loe']),
+          'filtered_df = ', len(filtered_df), filtered_df)
+
     return filtered_df
-
-

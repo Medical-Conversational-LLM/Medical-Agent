@@ -11,27 +11,27 @@ import { Customize } from "@/components/chat/customize";
 const suggestions = [
   {
     prompt:
-      "Imagine you're crafting a morning ritual geared towards holistic well-being. Your objective is to weave together a tapestry of activities that nurture your body, mind, and soul. Consider incorporating elements like yoga, meditation, healthy breakfast choices, and gratitude journaling. Your task is to create a detailed blueprint for a morning routine that fosters inner harmony and sets a positive tone for the day ahead. Think expansively and prioritize practices that resonate deeply with your sense of wholeness.",
-    label: "Holistic Morning Harmony",
-    description: "Design a morning ritual for holistic well-being.",
+      "How does insulin regulate blood glucose levels?",
+    label: "Diabetes Management",
+    description: "Insulin’s role in regulating blood sugar levels and metabolism.",
   },
   {
     prompt:
-      "Picture yourself architecting a morning regimen dedicated to mental clarity and focus. Your aim is to construct a sequence of activities that sharpen your cognitive faculties and enhance productivity. Think about including strategies such as mindfulness meditation, brain exercises, goal-setting sessions, and healthy breakfast choices. Your objective is to outline a structured morning routine that primes your mind for optimal performance and empowers you to tackle challenges with clarity and resolve.",
-    label: "Mindful Morning Mastery",
-    description: "Craft a morning routine to boost mental clarity.",
+      "What are the typical symptoms of asthma, and how do they manifest?",
+    label: "Asthma Symptoms",
+    description: "Wheezing, breathlessness, cough, reversible obstruction.",
   },
   {
     prompt:
-      "Visualize yourself engineering a morning protocol tailored to physical vitality and energy. Your goal is to devise a series of actions that invigorate your body and cultivate resilience. Consider integrating activities like high-intensity workouts, stretching routines, nutritious breakfast options, and hydration practices. Your task is to draft a comprehensive morning plan that fuels your body with vitality and primes you for a day of active engagement and physical well-being.",
-    label: "Energizing Morning Vitality",
-    description: "Create a morning regimen to enhance physical vitality.",
+      "What are the current treatment options for rheumatoid arthritis?",
+    label: "Rheumatoid Arthritis Treatment",
+    description: "Managing autoimmune joint inflammation and pain.",
   },
   {
     prompt:
-      "Envision yourself composing a morning ritual centered around emotional balance and inner peace. Your objective is to construct a framework of practices that nurture your emotional well-being and foster resilience in the face of life's challenges. Think about incorporating activities such as gratitude exercises, journaling, deep breathing exercises, and self-affirmations. Your aim is to outline a nurturing morning routine that cultivates emotional equilibrium and empowers you to navigate the day with grace and serenity.",
-    label: "Tranquil Morning Serenity",
-    description: "Develop a morning routine for emotional balance.",
+      "How do viral and bacterial meningitis differ in terms of presentation and management?",
+    label: "Meningitis Types",
+    description: "Differentiating viral and bacterial causes, treatments vary.",
   },
 ];
 export function Chat() {
@@ -41,6 +41,7 @@ export function Chat() {
   const chats = useChats();
   const chat = useGlobalChat();
 
+  console.log("chat", chat)
   useEffect(() => {
     requestAnimationFrame(() => {
       if (!listRef.current || chat.isLoading) {

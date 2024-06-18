@@ -78,6 +78,8 @@ def to_stream(message):
 
 def to_stream_response(generator):
     for item in generator: 
+        if item is None:
+            break  
         yield to_stream(item)
 
 
@@ -95,9 +97,10 @@ class ThreadStreamer:
     def get(self):
         while True:
             item = self.queue.get()
+            yield item
             if item is None:
                 break
-            yield item
+
 
     def end(self):
         print("FINISHED ..")
@@ -124,3 +127,49 @@ def get_cloud_formatted_prompt(prompt):
                     "content": prompt,
                 }
             ]
+
+
+import string
+from nltk.corpus import wordnet
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+
+def normalize_data(query):
+    query = clean_text(query)
+    
+    query = query.lower()
+    
+    # Remove punctuation
+    query = query.translate(str.maketrans('', '', string.punctuation))
+    
+    # Remove stop words
+    medical_stop_words = set(["a", "an", "and", "the", "but", "or", "on", "in", "with", "without", "of", "at", "by", "are", "is"])
+    query = ' '.join(word for word in query.split() if word not in medical_stop_words)
+    
+    # Tokenize
+    query_tokens = word_tokenize(query)
+    
+    # Lemmatization
+    lemmatizer = WordNetLemmatizer()
+    query_tokens = [lemmatizer.lemmatize(word) for word in query_tokens]
+    
+    # Expand with medical synonyms
+    def expand_query_with_synonyms(tokens):
+        return tokens
+        expanded_tokens = []
+        for word in tokens:
+            synonyms = wordnet.synsets(word)
+            expanded_tokens.append(word)
+            for syn in synonyms:
+                for lemma in syn.lemmas():
+                    expanded_tokens.append(lemma.name())
+        return list(set(expanded_tokens))  # remove duplicates
+
+    query_tokens = expand_query_with_synonyms(query_tokens)
+    
+    
+    
+    return " ".join(query_tokens)
+
+
+ 

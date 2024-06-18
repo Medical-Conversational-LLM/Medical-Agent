@@ -20,8 +20,14 @@ from utils import should_continue
 critique_inference = Pretrained("HlaH/Llama3-ChatQA-Critic-PubMedQA")
 retrieval_inference = Pretrained("HlaH/Llama3-ChatQA-Retriever-PubMedQA")
 generator_inference = Pretrained("HlaH/Llama3-ChatQA-Generator-PubMedQA")
-MIN_RELEVANT_TO_WEB_SEARCH = 7
+MIN_RELEVANT_TO_WEB_SEARCH = 6
 MIN_AVG_TO_WEB_SEARCH = 0.3
+
+
+# summarization_inference = inference
+def generate_with_history(input):
+    # input should contain 'chat_history'
+    return generate(input['query'], input['documents'])
 
 
 def create_graph():
@@ -32,21 +38,21 @@ def create_graph():
     graph.set_memory("relevance_inference", critique_inference)
     graph.set_memory("critique_supported_inference", critique_inference)
     graph.set_memory("critique_utility_inference", critique_inference)
-    graph.set_memory("generator_inference", critique_inference)
-    
+    graph.set_memory("generator_inference", generator_inference)
+
     # graph.set_memory("summarization_inference", summarization_inference)
 
     graph.add_node("check_retrieval", check_need_retrieval)
     graph.add_node("vector_db", vector_db)
     graph.add_node("web_search", web_search)
     graph.add_node("critique_relevant", critique_relevant)
-    graph.add_node("critique_supported", critique_supported)
-    graph.add_node("critique_utility", critique_utility)
+    # graph.add_node("critique_supported", critique_supported)
+    # graph.add_node("critique_utility", critique_utility)
     graph.add_node("stream_results", stream_results)
     graph.add_node("generate", generate)
     # graph.add_node("summarize_explanation", summarize_explanation)
-    graph.add_node("check_attempts_utility", check_attempts)
-    graph.add_node("check_attempts_supported", check_attempts)
+    # graph.add_node("check_attempts_utility", check_attempts)
+    # graph.add_node("check_attempts_supported", check_attempts)
 
     graph.add_edge(
         "check_retrieval",
@@ -65,83 +71,90 @@ def create_graph():
         description="Docs < {}".format(MIN_RELEVANT_TO_WEB_SEARCH)
     )
 
+    # graph.add_edge(
+    #     "vector_db",
+    #     "critique_relevant",
+    #     condition=lambda result: len(
+    #         result) >= MIN_RELEVANT_TO_WEB_SEARCH and result['avg'] <= MIN_AVG_TO_WEB_SEARCH,
+    #     description="Docs >= {}".format(MIN_RELEVANT_TO_WEB_SEARCH),
+    #     out=lambda input, result: ({**input, **result}),
+    # )
+
+    # graph.add_edge(
+    #     "web_search",
+    #     "critique_relevant",
+    #     out=lambda input, result: ({
+    #         **input,
+    #         "documents": result
+    #     })
+    # )
+
     graph.add_edge(
         "vector_db",
-        "critique_relevant",
-        condition=lambda result: len(
-            result) >= MIN_RELEVANT_TO_WEB_SEARCH and result['avg'] <= MIN_AVG_TO_WEB_SEARCH,
-        description="Docs >= {}".format(MIN_RELEVANT_TO_WEB_SEARCH),
-        out=lambda input, result: ({**input, **result}),
-    )
-
-    graph.add_edge(
-        "web_search",
-        "critique_relevant",
-        out=lambda input, result: ({
-            **input,
-            "documents": result
-        })
-    )
-
-    graph.add_edge(
-        "critique_relevant",
         "generate",
-        out=lambda input, result: ({**input, "documents": result}),
+        out=lambda input, result: ({**input, **result}),
         condition=lambda result: len(result) > 0,
         description="docs > 0"
     )
-
     graph.add_edge(
-        "critique_relevant",
-        "check_retrieval",
-        out=lambda input, result: input,
-        condition=lambda result: len(result) == 0,
-        description="docs == 0"
+        "web_search",
+        "generate",
+        out=lambda input, result: ({**input, "documents": result}),
+    condition=lambda result: len(result) > 0,
+        description="docs > 0"
     )
 
-    graph.add_edge("generate", "critique_supported", out=lambda input, result: ({
-        **input,
-        "result": result,
-        "documents": input["documents"]
-    }))
+    # graph.add_edge(
+    #     "critique_relevant",
+    #     "check_retrieval",
+    #     out=lambda input, result: input,
+    #     condition=lambda result: len(result) == 0,
+    #     description="docs == 0"
+    # )
 
-    graph.add_edge("critique_supported",
-                   "check_attempts_supported",
-                   out=lambda input: ({
-                       **input,
-                   }),
-                   condition=lambda result: result["token"] == SupportedToken.NO_SUPPORT,
-                   description=SupportedToken.NO_SUPPORT.value
-                   )
+    # graph.add_edge("generate", "critique_supported", out=lambda input, result: ({
+    #     **input,
+    #     "result": result,
+    #     "documents": input["documents"]
+    # }))
 
-    graph.add_edge("check_attempts_supported", "check_retrieval", False)
+    # graph.add_edge("critique_supported",
+    #                "check_attempts_supported",
+    #                out=lambda input: ({
+    #                    **input,
+    #                }),
+    #                condition=lambda result: result["token"] == SupportedToken.NO_SUPPORT,
+    #                description=SupportedToken.NO_SUPPORT.value
+    #                )
 
-    graph.add_edge("critique_supported",
-                   "critique_utility",
-                   out=lambda input, result: ({
-                       **input,
-                       **result
-                   }),
-                   condition=lambda result: result["token"] !=
-                   SupportedToken.NO_SUPPORT,
-                   description="SUPPORTED"
-                   )
+    # graph.add_edge("check_attempts_supported", "check_retrieval", False)
 
-    graph.add_edge("critique_utility",
-                   "check_attempts_utility",
-                   out=lambda input, result: ({
-                       **input,
-                       **result,
-                       "explanations":  "\n\n".join([
-                           result["explanation"],
-                           input["explanation"]
-                       ])
-                   }),
-                   condition=lambda result, input: result["score"] < 4 and input['token'] != SupportedToken.FULL,
-                   description="utility < 4 and not fully supported")
+    # graph.add_edge("critique_supported",
+    #                "critique_utility",
+    #                out=lambda input, result: ({
+    #                    **input,
+    #                    **result
+    #                }),
+    #                condition=lambda result: result["token"] !=
+    #                SupportedToken.NO_SUPPORT,
+    #                description="SUPPORTED"
+    #                )
 
-    graph.add_edge("check_attempts_utility", "check_retrieval",
-                   condition=should_continue)
+    # graph.add_edge("critique_utility",
+    #                "check_attempts_utility",
+    #                out=lambda input, result: ({
+    #                    **input,
+    #                    **result,
+    #                    "explanations":  "\n\n".join([
+    #                        result["explanation"],
+    #                        input["explanation"]
+    #                    ])
+    #                }),
+    #                condition=lambda result, input: result["score"] < 4 and input['token'] != SupportedToken.FULL,
+    #                description="utility < 4 and not fully supported")
+
+    # graph.add_edge("check_attempts_utility", "check_retrieval",
+    #                condition=should_continue)
 
     # graph.add_edge("summarize_explanation",
     #                "check_retrieval",
@@ -151,17 +164,22 @@ def create_graph():
     #                }),
     #                )
 
-    graph.add_edge("check_attempts_utility", "stream_results",
-                   condition=lambda result: should_continue(result, "check_attempts_utility -> stream_results") == False)
+    # graph.add_edge("check_attempts_utility", "stream_results",
+    #                condition=lambda result: should_continue(result, "check_attempts_utility -> stream_results") == False)
 
-    graph.add_edge("critique_utility",
-                   "stream_results",
+    # graph.add_edge("critique_utility",
+    #                "stream_results",
+    #                out=lambda input, result: ({
+    #                    **input,
+    #                    **result
+    #                }),
+    #                condition=lambda result, input: result["score"] >= 4 and input['token'] != SupportedToken.NO_SUPPORT,
+    #                description="utility = 4 and full or partially supported"
+    #                )
+
+    graph.add_edge("generate", "stream_results",
                    out=lambda input, result: ({
-                       **input,
-                       **result
-                   }),
-                   condition=lambda result, input: result["score"] >= 4 and input['token'] != SupportedToken.NO_SUPPORT,
-                   description="utility = 4 and full or partially supported"
-                   )
+                       "result": result
+                   }))
 
     return graph
