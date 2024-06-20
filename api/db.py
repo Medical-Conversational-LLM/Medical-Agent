@@ -16,7 +16,7 @@ def get_conversation_messages(id):
         Message.conversation_id == id)
 
     return [
-        {**message, "id": message.doc_id} for message in messages
+        {**message, "id": message.doc_id} for message in messages if message["content"] != ""
     ]
 
 
@@ -26,12 +26,13 @@ def get_user_conversations():
     Conversation = Query()
     conversations = conversations_table.search(
         Conversation.user_id == user["id"])
-    
+
     conversations.reverse()
 
     conversations = conversations[0:20]
-    
+
     return [conversation_from_record(conversation) for conversation in conversations]
+
 
 def get_user_conversation(user_id):
     user = resolve_user_from_request()
@@ -39,11 +40,11 @@ def get_user_conversation(user_id):
     Conversation = Query()
     conversations = conversations_table.search(
         Conversation.user_id == user["id"])
-    
+
     conversations.reverse()
 
     conversations = conversations[0:20]
-    
+
     return [conversation_from_record(conversation) for conversation in conversations]
 
 

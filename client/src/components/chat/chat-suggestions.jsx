@@ -21,8 +21,8 @@ export function ChatSuggestions({
           </div>
 
           <div>
-            <div className="text-4xl lg:text-6xl font-black text-primary">
-              Hallo !!
+            <div className="text-4xl  font-black text-primary">
+              Welcome!
             </div>
             <div className="text-2xl lg:text-4xl text-muted-foreground font-light">
               Medical Search Engine

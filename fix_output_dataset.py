@@ -64,7 +64,6 @@ def fix_output_dataset(reader:Reader, writer:Writer ):
             
     writer.close()
 
-print(__name__)
 
 if __name__ == "__main__":
     

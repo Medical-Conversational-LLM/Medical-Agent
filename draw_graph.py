@@ -1,9 +1,9 @@
-from lm.create_graph import create_graph
+from lm.create_graph import create_graph, create_rag_graph
 from graph.graph import Edge
 import graphviz  
 from numpy import isscalar
 
-graph = create_graph()
+graph = create_rag_graph()
 
 dot = graphviz.Digraph(comment='Self-Rag Graph')
 

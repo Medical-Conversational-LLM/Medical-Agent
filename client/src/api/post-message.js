@@ -6,6 +6,7 @@ export async function postMessage({
   message,
   messageId,
   onMessage,
+  model = "self-reflective",
   signal,
   settings = {},
 }) {
@@ -21,6 +22,7 @@ export async function postMessage({
       chatId,
       messageId,
       settings,
+      model
     }),
   });
 

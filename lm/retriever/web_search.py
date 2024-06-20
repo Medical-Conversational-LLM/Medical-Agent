@@ -66,7 +66,7 @@ def get_html_element(element, tags_whitelist: list[str], base_url: str):
     return text
 
 
-def google_search(search_term, num=2, **kwargs):
+def google_search(search_term, num=5, **kwargs):
     service = build("customsearch", "v1", developerKey=GOOGLE_API_KEY)
     res = service.cse().list(q=search_term, cx=GOOLE_CUSTOM_SEARCH_ENGINE_ID,
                              num=num,  **kwargs).execute()
@@ -76,7 +76,6 @@ def google_search(search_term, num=2, **kwargs):
 def fetch_links_content(links: list[str]):
 
     results = []
-    print('links' , len(links) , links)
 
     for link in links:
         try:
@@ -92,9 +91,9 @@ def fetch_links_content(links: list[str]):
             base_url = urlunparse(
                 (parsed_url.scheme, parsed_url.netloc, '', '', '', ''))
 
-            results.append(extract_webpage_content(content, base_url),{'base_url':base_url})
+            results.append(extract_webpage_content(content, base_url))
         except Exception as e:
-            print(e)
+            print('error=' ,  e)
             continue
 
     return results
@@ -115,18 +114,25 @@ def web_search(input, graph: Graph):
             "type": "WEB_SEARCH",
             "message": "Searching the web"
         })
-        links = [result['link'] for result in results]
+        
+        initial_links = [result['link'] for result in results]
+        
+        documents = fetch_links_content(initial_links)
 
-        documents = fetch_links_content(links)
+        results_db = get_input_documents(input)
+        
 
         
-        documents = documents + get_input_documents(input)
-        print('before summarization ----  ' , documents)
+        additional_links = [None for result in results_db]
+        
+        all_links = initial_links + additional_links
+        
+        documents = documents + results_db
     
+        documents = search_in_documents(input["query"], documents,all_links)[0][0::6]
 
-        documents = search_in_documents(input["query"], documents[0])[0][0::6]
-        # documents =get_relevant_summarization(input["query"], documents)[0][0::6]
-        print('after summarization ----  ' , documents)
+        print("documents")
+        print(documents)
 
         graph.streamer.put({
             "type": "WEB_SEARCH",

@@ -59,7 +59,7 @@ def critique_utility(input, graph: Graph):
     graph.set_memory("utility", score)
     graph.set_memory("supported", input["token"])
     graph.set_memory("result", input["result"])
-    print(score)
+ 
     return {
         "score": score,
         "explanation": ""

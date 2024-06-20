@@ -6,7 +6,7 @@ import { ThemeProvider } from "./context/theme-provider";
 import { LoadingScreen } from "./components/ui/loading-screen";
 import { useUserStore } from "./store/user";
 import { useEffect } from "react";
-
+import { ErrorPage } from "./components/error-page"
 const queryClient = new QueryClient();
 
 export function App() {
@@ -28,6 +28,7 @@ export function App() {
             </Routes>
           </BrowserRouter>
         )}
+        <ErrorPage />
       </QueryClientProvider>
     </ThemeProvider>
   );

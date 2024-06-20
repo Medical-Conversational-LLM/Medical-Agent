@@ -50,13 +50,11 @@ def critique_supported(input, graph: Graph):
                     ).format(input=input["query"], evidence="\n".join(input["documents"]), output=input["result"])
                 }
             ])
-
-            print("SUPPORTED {}".format(response))
+ 
 
             token = match_token(response, options)
             token = token.strip("[]")
-
-            print(token)
+ 
 
             return {
                 "token": token,  "explanation": ""

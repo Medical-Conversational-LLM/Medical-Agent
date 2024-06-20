@@ -19,7 +19,7 @@ const getChatQueryKey = (id) => ["chat", String(id)];
 export function useChat(chatId) {
   const [messageDict, setMessageDict] = useState({});
   const [lastMessageState, setLastMessageState] = useState();
-
+  const [selectedModel, onModelSelect] = useState("self-reflective")
   const [settings, setSettings] = useState({
     temperature: 1,
     max_length: 256,
@@ -109,7 +109,7 @@ export function useChat(chatId) {
       chatId,
       message: myMessage,
       settings,
-
+      model:selectedModel,
       onMessage(message) {
         console.log("message", message);
 
@@ -195,6 +195,8 @@ export function useChat(chatId) {
     updateSetting(name, value) {
       setSettings((settings) => ({ ...settings, [name]: value }));
     },
+    selectedModel,
+    onModelSelect
   };
 }
 

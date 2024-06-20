@@ -1,6 +1,12 @@
 from lm.create_graph import create_graph
 from logger import profiler
-from utils import handle_exception, normalize_data
+from utils import handle_exception, list_available_devices, normalize_data
+import torch
+
+
+
+
+list_available_devices()
 
 while True:
     try:

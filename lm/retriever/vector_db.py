@@ -48,28 +48,17 @@ def vector_db(input, graph):
 
     results = run_query_against_index(
         input["query"], index, retrieval_df['article'].iloc)[0]
-    # print('before summarization ----  ' , results)
+
     if len(results) > 0:
         results =get_relevant_summarization(input["query"], results)
     else:
         distances = []
         results = []
-
-    # if len(results) > 0:
-    #     results, distances = search_in_documents(input["query"], results)
-    # else:
-    #     distances = []
-    #     results = []
+ 
 
     graph.streamer.put({
         "type": "DB_SEARCH",
         "message": "Found {} articles".format(len(results)),
     })
-
-    # print('summarization ----  ' , results)
-
-    # average_score = 1
-    # if len(results) > 0:
-    #     average_score = np.average(distances[0::5])
-
+ 
     return {"documents": results}

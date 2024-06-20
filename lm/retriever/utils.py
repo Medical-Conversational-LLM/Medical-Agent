@@ -38,7 +38,6 @@ def rerank_labels_with_cross_encoder(query, labels):
         return []
     
     try:
-        print(pairs)
         scores = cross_encoder.predict(pairs)
 
         sorted_indices = sorted(

@@ -1,24 +1,42 @@
 from graph.graph import Graph
-def check_need_retrieval(input, graph:Graph):
-    inference = graph.get_memory("retrieval_inference")
-    prompt = [
-        {
-            "role": "system",
-            "content": "This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions based on the context. The assistant should also indicate when the answer cannot be found in the context."
-        },
-        {
-            "role": "user",
-            "content": f"""Your task is to evaluate whether the question requires seeking additional information from external sources to produce a more comprehensive and accurate response ,return [Retrieval] or [No Retrieval]"""
-        },
-        {
-            "role": "user", "content": "Describe the symptoms of COVID-19?"
-        }
-    ]
+import re
 
-    result = inference.completion(prompt)
-    print('Retrieval =' , result)
+
+def check_need_retrieval(input, graph: Graph):
 
     if "query" not in input or input["query"] is None:
         raise ValueError("query is required")
-    
-    return result != "[No Retrieval]"
+
+    inference = graph.get_memory("retrieval_inference")
+
+    prompt = [
+        {
+            "role": "system",
+            "content":re.sub(r'\n', '', (
+                    "This is a chat between a user and an artificial intelligence assistant."
+                    "Your task is to determine if the question necessitates acquiring supplementary information "
+                    "from external sources for a more precise response."
+                    "If additional information is needed return [Retrieval], if it is not return [No Retrieval]\n"
+                    "# Examples:\n\n"
+                    "Question: What are the common symptoms of type 2 diabetes\n"
+                    "RetrievalOrNot: [No Retrieval]\n"
+ 
+                    "Question: What are the latest FDA-approved treatments for advanced melanoma, and how do they compare in terms of efficacy and safety?\n"
+                    "RetrievalOrNot: [Retrieval]\n"
+ 
+                    "Ensure to return results similiar to the examples structure"
+            ))
+        },
+        {
+            "role": "user",
+            "content": re.sub(r'\n', '',(
+                "Question:{query}\n"
+                "RetrievalOrNot:\n" 
+            ).format(query=input["query"]))
+        }
+    ]
+
+    model_response = inference.completion(prompt)
+    model_response = model_response.strip().lower()
+     
+    return "no retrieval" not in model_response

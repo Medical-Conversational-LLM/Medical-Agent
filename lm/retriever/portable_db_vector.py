@@ -8,16 +8,36 @@ from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lsa import LsaSummarizer as Summarizer
 from sumy.nlp.stemmers import Stemmer
 from sumy.utils import get_stop_words
+from utils import get_source_from_url
 
-def search_in_documents(query: str, documents: list[str]):
-    splitter = TextSplitter((1600))
+
+splitter = TextSplitter((1600))
+
+model = get_model()
+
+def search_in_documents(query: str, documents: list[str], urls: list[str] = [], split = True):
     full_documents = documents
     documents = []
+    print("====URLS====")
+    print(urls)
+    for index, document in enumerate(full_documents):
 
-    for document in full_documents:
-        documents.extend(splitter.chunks(document))
-        
-    model = get_model()
+        url = get_source_from_url(urls[index]) if index in urls else None
+
+        if split:
+            chunks = splitter.chunks(document)
+        else:
+            chunks = [document]
+
+        for chunk in chunks:
+
+            if url is not None:
+                chunk_string = f"{chunk}. SOURCE({url})"
+            else:
+                chunk_string = chunk
+
+            documents.append(chunk_string)
+
 
     embeddings = model.encode(documents)
 
@@ -32,8 +52,7 @@ def search_in_documents(query: str, documents: list[str]):
 
     results = filter_index_results(labels, distances, documents)
 
-    return results
-    # return rerank_labels_with_cross_encoder(query, labels[0])
+    return results 
 
 
 def get_relevant_summarization(query: str, documents: list[str]):
@@ -43,7 +62,7 @@ def get_relevant_summarization(query: str, documents: list[str]):
     documents = []
 
     for document in full_documents:
-        arr=[]
+        arr = []
         # for index, chunk in enumerate(chunks):
         parser = PlaintextParser.from_string(document, Tokenizer(LANGUAGE))
         stemmer = Stemmer(LANGUAGE)
@@ -51,10 +70,11 @@ def get_relevant_summarization(query: str, documents: list[str]):
         summarizer = Summarizer(stemmer)
         summarizer.stop_words = get_stop_words(LANGUAGE)
 
-        summarized_sentences = [str(sentence) for sentence in summarizer(parser.document, SENTENCES_COUNT)]
-        
+        summarized_sentences = [str(sentence) for sentence in summarizer(
+            parser.document, SENTENCES_COUNT)]
+
         # Join all sentences into a single string with "loe" and collect the results
-        joined_sentences =  ' '.join(summarized_sentences)
+        joined_sentences = ' '.join(summarized_sentences)
 
         arr.append(joined_sentences)
         return arr

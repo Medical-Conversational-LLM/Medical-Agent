@@ -1,60 +1,12 @@
-# from inference.groq import Groq
-# from graph.graph import Graph
-
-
-# def generate(input, graph: Graph):
-#     inference = graph.get_memory("generator_inference")
-
-#     prompt = [
-#         {
-#             "role": "system",
-#             "content": (
-#                 "This is a chat between a user and an artificial intelligence assistant in the medical field. "
-#                 "The assistant gives helpful, detailed answers to the user's questions based on the provided context.\n"
-#             )
-#         },
-#         {
-#             "role": "user",
-#             "content": (
-#                 "##Question:\n{question}\n"
-#                 "##Context: {context}\n"
-#                 "##Response:"
-#             ).format(
-#                 question=input["query"],
-#                 context=input["documents"]
-#             )
-#         }
-#     ]
-#     graph.streamer.put({
-#         "type": "GENERATE",
-#         "message": "Generating initial response"
-#     })
-
-
-#     result = inference.completion(
-#         prompt
-#     )
-
-#     print(
-#         result
-#     )
-
-#     return result
 from utils import get_llama_formatted_prompt
-import torch
+
 from typing import Any
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel, PeftConfig
-from inference.inference import Inference
-import numpy as np
-from inference.groq import Groq
 from graph.graph import Graph
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from prompt.supported import SupportedToken
-from utils import match_reflective_token_with_explaination
 import re
 from prompt.supported import Supported, SupportedToken
-# Constants for critique tokens
+
 CRITIQUE_WEIGHTS = {
     'ISREL': 1.0,
     'ISSUP': 1.0,
@@ -64,19 +16,14 @@ K = 2  # Number of continuation candidates to generate
 B = 2  # Beam size for beam search
 
 
-import torch
+def generate_candidates_for_chunk(input, inference, chunk=None, chat_history=[]):
 
-torch.cuda.set_per_process_memory_fraction(0.5)  # Limits GPU memory to 50%
+    chat_history_string = "\n".join(["{role}: {content}".format(
+        role=item["role"].title(), content=item["content"]) for item in chat_history])
 
-def generate_candidates_for_chunk(input, inference, chunk=None,chat_history = []):
-
-    chat_history_string = "\n".join(["{role}: {content}".format(role=item["role"].title(), content=item["content"]) for item in chat_history])
-
-
-    print("===chat_history==", chat_history)
     history_prompt = {
         "role": "system",
-        "content": (                
+        "content": (
             "{pre_history}"
             "{history}"
         ).format(
@@ -86,34 +33,33 @@ def generate_candidates_for_chunk(input, inference, chunk=None,chat_history = []
             ) if len(chat_history) > 0 else "",
             history=chat_history_string
         )
-    } 
-    if chunk is not None :
-        prompt =  [                                         
-            {                
+    }
+    if chunk is not None:
+        prompt = [
+            {
                 "role": "system",
                 "content": (
                     "This is a chat between a user and an artificial intelligence assistant in the medical field.\n "
-                    "The assistant gives helpful, detailed answers to the user's questions based on the provided context."
-                    "prediction should followed by a source of your generated response / knowledge , including the source name, publication date, or URL .\n"
+                    "The assistant gives helpful, detailed answers to the user's questions based on the provided context.\n"
                 )
             },
-            history_prompt,    
+            history_prompt,
             {
                 "role": "user",
                 "content": (
                     "##Question:\n{question}\n"
                     "##Context: {context}\n"
-                    "##Response:"
+                    "##Answer:"
                 ).format(
                     question=input["query"],
                     context=chunk,
                 )
             }
         ]
-        
+
     else:
 
-            prompt = [
+        prompt = [
             {
                 "role": "system",
                 "content": (
@@ -126,29 +72,22 @@ def generate_candidates_for_chunk(input, inference, chunk=None,chat_history = []
                 "role": "user",
                 "content": (
                     "##Question:\n{question}\n"
-                    "##Response:"
+                    "##Answer:"
                 ).format(
                     question=input["query"],
                 )
             }
         ]
 
-    prompt=prompt
-    print('prompt' , prompt)
-    result = inference.completion(prompt)
-    print('result', result)
-    # print('PROMPT={prompt}\nRESULT={result}'.format(prompt=prompt, result=result))
-    return result
+    prompt = prompt
 
+    result = inference.completion(prompt)
+
+    return result
 
 
 def generate(input, graph: Graph):
 
-    print('graph' , graph)
-
-    print("===input====")
-    print(input)
-    
     inference = graph.get_memory("generator_inference")
 
     graph.streamer.put({
@@ -156,48 +95,35 @@ def generate(input, graph: Graph):
         "message": "Generating response"
     })
 
- 
-    # chat_history_content = [item.get("content") for item in history if item.get("content")]
-    # print("Chat History Content:", chat_history_content)
-    # Split input documents into chunks (assuming input["documents"] is a list)
-    # chunks = np.array_split(input["documents"],6)
-    chunks = input["documents"]
-    chunks = chunks[0:5]
-    print('chunks =====',len(chunks))
-    chat_history=[]
+    chunks = input["documents"].copy()
+    chunks = chunks[0:2]
+
+    chat_history = []
     for item in input['chat_history']:
         role = "Assistant"
-                
+
         if "user_id" in item and item["user_id"] is not None:
             role = "User"
 
         chat_history.append({
-            "role":role,
-            "content":item["content"]
+            "role": role,
+            "content": item["content"]
         })
-         
-    print('chat_history_str' , chat_history)
 
     all_candidates = []
-    
+
     with ThreadPoolExecutor(max_workers=6) as executor:
         if isinstance(chunks, list) is False or len(chunks) == 0:
             chunks = [None]
 
         futures = [executor.submit(
             generate_candidates_for_chunk, input, inference, chunk, chat_history) for chunk in chunks]
-        
-        
+
         for future in as_completed(futures):
             all_candidates.append(future.result())
 
-    # all_candidates = generate_caafter summarization ---- ndidates_for_chunk(chunks)
-
-    print('llm results === ', all_candidates)
-
-    # Compute critique scores for each candidate by calling critique nodes
     scored_candidates = []
-    i =0
+    i = 0
     for candidate in all_candidates:
 
         graph.streamer.put({
@@ -205,8 +131,8 @@ def generate(input, graph: Graph):
             "message": "Critique candidate {} relevance".format(i)
         })
 
-        i+=1
-        print("Critique Candidate ..")
+        i += 1
+
         relevance_score = critique_relevant(input, graph)
         graph.streamer.put({
             "type": "CRITIQUE",
@@ -218,39 +144,30 @@ def generate(input, graph: Graph):
             "message": "Critique candidate {} usefulness".format(i)
         })
         utility_score = critique_utility(input, candidate, graph)
-        print('relevance_score = ' , relevance_score , 'support_score' , support_score ,'utility_score=' , utility_score)
 
-        # relevance_score = 1
-        # support_score = 1
-        # utility_score = 0.5
-
-        # Calculate weighted score
         S_Critique = (
-            CRITIQUE_WEIGHTS['ISREL'] * relevance_score +
-            CRITIQUE_WEIGHTS['ISSUP'] * support_score +
-            CRITIQUE_WEIGHTS['ISUSE'] * utility_score
+            CRITIQUE_WEIGHTS['ISREL'] * int(relevance_score) +
+            CRITIQUE_WEIGHTS['ISSUP'] * int(support_score) +
+            CRITIQUE_WEIGHTS['ISUSE'] *
+            utility_score if type(utility_score) is int else 0
         )
 
         # Compute language model probability
         # lm_probability = compute_language_model_probability(
         #     input["query"], chunks, candidate, graph)
         lm_probability = 0.6
-        # print('lm_probability ==== ', lm_probability)
 
         # Calculate final segment score
         segment_score = lm_probability + S_Critique
         scored_candidates.append(
             {'candidate': candidate, 'score': segment_score})
 
-
     # Perform beam search to select top B segments
     top_segments = beam_search(scored_candidates)
-    print('top_segments', top_segments)
 
     # Select the best candidate as the final result
     final_result = top_segments[0]['candidate'] if top_segments else "No valid continuation found."
 
-    print('final_result'  ,final_result)
     return final_result
 
 
@@ -287,8 +204,6 @@ def critique_relevant(input, graph: Graph):
         prompt,
         max_new_tokens=15
     )
-
-    # print('result relevant', result)
 
     if (result == "[Irrelevant]"):
         return 0
@@ -352,14 +267,10 @@ def critique_utility(input, output, graph: Graph):
         else:
             return None
 
-    # print('prompt ==== ', prompt)
     response = inference.completion(prompt, max_new_tokens=15)
-    # print("UtilityUtility", response)
-    # print('utility == ' ,prompt , 'response ' ,  response )
     utility_number = extract_utility_number(response)
     # Generate scores for each utility response
     score = utility_to_score(utility_number)
-    # print('score =======', score)
     return score
 
 
@@ -407,13 +318,11 @@ def critique_supported(input, output, graph: Graph):
                 }
             ], max_new_tokens=25)
 
-            # print("SUPPORTED {}".format(response))
-            token='[Fully supported]'
+            token = '[Fully supported]'
             token = match_token(response, options)
             if token is not None:
                 token = token.strip("[]")
 
-            # print('SUPPORTED token == ', token)
             if token == 'Fully supported':
                 return 1
             elif token == 'Partially supported':
@@ -443,18 +352,15 @@ def match_token(token: str, options: list[str]):
 
 
 def beam_search(segments):
-    # Perform beam search to select top B segments
     segments.sort(key=lambda x: x['score'], reverse=True)
-    # print('segments' , segments)
-    if len(segments)>= B:
+    if len(segments) >= B:
         return segments[:B]
     else:
         return segments
 
- 
 
 # def compute_language_model_probability(query, documents, response, graph):
-    
+
 #     inference = graph.get_memory("generator_inference")
 #     # Check if response is None
 #     if response is None:
@@ -477,8 +383,8 @@ def beam_search(segments):
 #     logits = output.scores
 #     print('logits =====', logits)
 
-#     logits_tensor = logits[0] 
-#     next_token_logits = logits_tensor[0, -1, :]  
+#     logits_tensor = logits[0]
+#     next_token_logits = logits_tensor[0, -1, :]
 #     next_token_probs = torch.softmax(next_token_logits, dim=-1)
 
 #     tokenizer = inference.tokenizer

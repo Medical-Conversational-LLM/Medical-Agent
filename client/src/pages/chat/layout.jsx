@@ -9,8 +9,9 @@ import {
 } from "lucide-react";
 import { ThemeSwitch } from "@/components/ui/theme-switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { LLMSelector } from "@/components/chat/llm-selector";
 
-export function Layout({ children, chats }) {
+export function Layout({ children, selectedModel, onModelSelect, chats }) {
   const [sideBarOpened, setIsSideBarOpened] = useState(false);
 
   const { pathname } = useLocation();
@@ -70,7 +71,8 @@ export function Layout({ children, chats }) {
         {children}
       </div>
 
-      <div className="fixed top-2 right-2 flex gap-4" id="layout-actions">
+      <div className="fixed top-2 right-2 flex gap-4 items-center" id="layout-actions">
+        <LLMSelector selected={selectedModel} onSelect={onModelSelect} />
         <Button
           variant="outline"
           className="rounded-full lg:hidden"

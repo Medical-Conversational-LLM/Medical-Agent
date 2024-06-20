@@ -41,7 +41,6 @@ export function Chat() {
   const chats = useChats();
   const chat = useGlobalChat();
 
-  console.log("chat", chat)
   useEffect(() => {
     requestAnimationFrame(() => {
       if (!listRef.current || chat.isLoading) {
@@ -67,7 +66,7 @@ export function Chat() {
   }, [chat.isSending, chat.chatId]);
 
   return (
-    <Layout chats={chats}>
+    <Layout chats={chats} selectedModel={chat.selectedModel} onModelSelect={chat.onModelSelect}>
       <div className="flex w-full flex-1 h-full">
         <div className="flex-1 h-full w-full flex items-center flex-col overflow-hidden pb-4">
           <div className="flex-1 w-full overflow-hidden">

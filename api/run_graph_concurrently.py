@@ -2,7 +2,7 @@ if __name__ == "__main__":
     import sys
     sys.path.append(".")
 
-from lm.create_graph import create_graph
+from lm.create_graph import create_graph, create_rag_graph
 from threading import Thread
 from utils import ThreadStreamer
 
@@ -13,17 +13,28 @@ def run_graph_concurrently(
     temperature=0.7,
     top_k=0.1,
     top_p=20,
-    max_length=128
+    max_length=128,
+    model: str = "self-reflective"
 ):
-    graph = create_graph()
-    graph.streamer = ThreadStreamer()
 
     input_data = {
         "query": query,
         "chat_history": chat_history
     }
 
-    thread = Thread(target=graph.start, args=("check_retrieval", input_data))
+    entry = "check_retrieval"
+
+    if model == "rag":
+        entry = "vector_db"
+        graph = create_rag_graph()
+    else:
+        graph = create_graph()
+
+    print(f"RUNNING model {model} ->entry-> [{entry}] ")
+    
+    graph.streamer = ThreadStreamer()
+
+    thread = Thread(target=graph.start, args=(entry, input_data))
 
     thread.start()
 
