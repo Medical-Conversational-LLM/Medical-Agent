@@ -17,6 +17,11 @@ const options = [
         value: "self-reflective",
         label: "Self Reflective",
         description: "Reflective Enhanced Retrieval-Augmented Generation"
+    },
+    {
+        value: "medline",
+        label: "Medline",
+        description: "Generation Integrated with Medline Dataset"
     }
 ]
 export function LLMSelector({ className, selected = "self-reflective", onSelect }) {

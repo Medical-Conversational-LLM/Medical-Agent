@@ -12,8 +12,8 @@ CRITIQUE_WEIGHTS = {
     'ISSUP': 1.0,
     'ISUSE': 1.0
 }
-K = 2  # Number of continuation candidates to generate
-B = 2  # Beam size for beam search
+K = 2  
+B = 2
 
 
 def generate_candidates_for_chunk(input, inference, chunk=None, chat_history=[]):
@@ -78,8 +78,7 @@ def generate_candidates_for_chunk(input, inference, chunk=None, chat_history=[])
                 )
             }
         ]
-
-    prompt = prompt
+    print('=== prompt ===' , prompt)
 
     result = inference.completion(prompt)
 
@@ -96,7 +95,8 @@ def generate(input, graph: Graph):
     })
 
     chunks = input["documents"].copy()
-    chunks = chunks[0:2]
+    if len(chunks) > 2 :
+       chunks = chunks[0:2]
 
     chat_history = []
     for item in input['chat_history']:
@@ -144,6 +144,7 @@ def generate(input, graph: Graph):
             "message": "Critique candidate {} usefulness".format(i)
         })
         utility_score = critique_utility(input, candidate, graph)
+        print('scores',relevance_score,support_score,utility_score)
 
         S_Critique = (
             CRITIQUE_WEIGHTS['ISREL'] * int(relevance_score) +
@@ -151,23 +152,17 @@ def generate(input, graph: Graph):
             CRITIQUE_WEIGHTS['ISUSE'] *
             utility_score if type(utility_score) is int else 0
         )
-
-        # Compute language model probability
-        # lm_probability = compute_language_model_probability(
-        #     input["query"], chunks, candidate, graph)
+ 
         lm_probability = 0.6
-
-        # Calculate final segment score
+ 
         segment_score = lm_probability + S_Critique
         scored_candidates.append(
             {'candidate': candidate, 'score': segment_score})
-
-    # Perform beam search to select top B segments
+        
     top_segments = beam_search(scored_candidates)
-
-    # Select the best candidate as the final result
+ 
     final_result = top_segments[0]['candidate'] if top_segments else "No valid continuation found."
-
+    
     return final_result
 
 
@@ -213,8 +208,7 @@ def critique_relevant(input, graph: Graph):
 
 def critique_utility(input, output, graph: Graph):
 
-    def utility_to_score(utility):
-        # Define the mapping from utility to score
+    def utility_to_score(utility): 
         utility_score_mapping = {
             5: 1.0,
             4: 0.75,
@@ -222,8 +216,7 @@ def critique_utility(input, output, graph: Graph):
             2: 0.25,
             1: 0.0
         }
-
-        # Return the corresponding score
+ 
         return utility_score_mapping.get(utility, "Invalid utility rating")
 
     inference = graph.get_memory("critique_utility_inference")
@@ -269,7 +262,6 @@ def critique_utility(input, output, graph: Graph):
 
     response = inference.completion(prompt, max_new_tokens=15)
     utility_number = extract_utility_number(response)
-    # Generate scores for each utility response
     score = utility_to_score(utility_number)
     return score
 
@@ -357,39 +349,3 @@ def beam_search(segments):
         return segments[:B]
     else:
         return segments
-
-
-# def compute_language_model_probability(query, documents, response, graph):
-
-#     inference = graph.get_memory("generator_inference")
-#     # Check if response is None
-#     if response is None:
-#         print("Error: Response is None.")
-#         return None
-
-#     input_sequence = f"{query} {' '.join(documents)} {response}"
-#     response, output = inference.completion([
-#         {
-#             "role": "user",
-#             "content": input_sequence
-#         }
-#     ], output_scores=True)
-
-#     if output is None or not hasattr(output, 'scores'):
-#         print("Error: Output or logits is None.")
-#         return None
-
-
-#     logits = output.scores
-#     print('logits =====', logits)
-
-#     logits_tensor = logits[0]
-#     next_token_logits = logits_tensor[0, -1, :]
-#     next_token_probs = torch.softmax(next_token_logits, dim=-1)
-
-#     tokenizer = inference.tokenizer
-#     next_token = response.split()[-1]
-#     next_token_id = tokenizer.encode(next_token, add_special_tokens=False)[0]
-#     print('end ===', next_token_id)
-#     next_token_prob = next_token_probs[next_token_id].item()
-#     return next_token_prob

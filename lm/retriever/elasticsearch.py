@@ -25,19 +25,29 @@ def elasticsearch_search_documents(query: str):
                     "query": query,
                     "fuzziness": "AUTO"
                 }},
-            "size": 20,
+            "size": 1,
         }
 
         response = es.search(index=index_name,  body=search_query)
 
-        return ["{abstract} PUBMIDID({pmid}) LOE({loe}) AUTHORS({authors})".format(
-            abstract=item["_source"]["abstract"],
-            pmid=item["_source"]["pmid"],
-            loe=item["_source"]["loe"] if "loe" in item["_source"] else None,
-            authors=",".join(item["_source"]["authors"]
-                             ) if "authors" in item["_source"] else "",
+        return [
+                " ".join(
+                   filter(
+                       lambda value: value != None,
+                        [
+                        item["_source"]["abstract"],
+                        "PUBMIDID({})".format(item["_source"]["pmid"]),
+                        "LOE({})".format( item["_source"]["loe"]) if "loe" in item["_source"] else None
+                        # "AUTHORS({})".format(
+                        #     ",".join(item["_source"]["authors"]) if "authors" in item["_source"] else None
+                        # )
+                    ]
+                   )
+                )
+            
+                             
 
-        ) for item in response["hits"]["hits"]]
+         for item in response["hits"]["hits"]]
 
     except:
         print("failed to call elasticsearch")

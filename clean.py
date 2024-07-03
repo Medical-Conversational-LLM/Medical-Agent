@@ -118,11 +118,7 @@ import json
 
 # Function to clean a single row
 def clean_row(row):
-    # # Remove the leading text from the 'question' field
-    # if row['question'].startswith("Here is the converted open-ended question and answer:\n\n**Open-ended Question:**"):
-    #     row['question'] = row['question'].replace("Here is the converted open-ended question and answer:\n\n**Open-ended Question:**", "").strip()
-    
-    # Extract the answer from the 'question' field and move it to a new index
+
     answer_start = row['question'].find("Answer")
     if (answer_start != -1):
         answer = row['question'][answer_start + len("Answer:")-1:].strip()
@@ -135,14 +131,14 @@ def clean_row(row):
         try:
             context_str = row['context'].replace("'", '"').replace('\n', ' ')
             context_str = re.sub(r'\\(?!["\\/bfnrt])', r'\\\\', context_str)  # Escape backslashes
-            # context_data = json.loads(context_str)
+
 
             context_str = Cleaner().clean(context_str)
             context_data = json.loads(context_str)
             row['contexts'] = context_data.get('contexts', [])
-            # print('done',row['contexts'])
+
         except json.JSONDecodeError as e:
-            # row['contexts'] = []
+
             print(e)
 
 
@@ -159,8 +155,6 @@ def clean_row(row):
 # Load the JSON file
 with open('storage/output/randomized_dataset3.json', 'r') as file:
     data = json.load(file)
-
-    print('test')
 
 # Clean each row in the dataset
 cleaned_data = [clean_row(row) for row in data]

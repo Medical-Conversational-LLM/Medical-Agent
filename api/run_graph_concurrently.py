@@ -2,7 +2,7 @@ if __name__ == "__main__":
     import sys
     sys.path.append(".")
 
-from lm.create_graph import create_graph, create_rag_graph
+from lm.create_graph import create_graph, create_rag_graph,create_medline_graph
 from threading import Thread
 from utils import ThreadStreamer
 
@@ -27,6 +27,9 @@ def run_graph_concurrently(
     if model == "rag":
         entry = "vector_db"
         graph = create_rag_graph()
+    elif model == "medline":
+        entry = "medline"
+        graph = create_medline_graph()
     else:
         graph = create_graph()
 

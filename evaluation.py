@@ -16,9 +16,10 @@ if __name__ == "__main__":
     df = pd.read_csv('storage/datasets/PubMedQA_test_clean_fixed.csv')
     # Convert the DataFrame to a Hugging Face Dataset
     # df = Dataset.from_pandas(df)
-    # df=df[0:]
+    df=df[0:600]
     
-    # evaluate_self_reflection(df)
-    loe_evaluation(df)
+    evaluate_self_reflection(df)
+    # loe_evaluation(df)
+    # evaluate_generator(df)
     # pred,ref = evaluate_generator(df)
     

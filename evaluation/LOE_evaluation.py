@@ -13,12 +13,13 @@ import evaluate
 from .metrics import match,similarity
 from .utils import control_tokens
 
-GENERATOR_MODEL_ID = 'Llama-2-7b-ChatQA-Generator-PubMedQA'
+# GENERATOR_MODEL_ID = 'Llama-2-7b-ChatQA-Generator-PubMedQA'
+GENERATOR_MODEL_ID = 'HlaH/Llama3-ChatQA-Generator-PubMedQA'
 
 def loe_evaluation(df):  
     torch.cuda.empty_cache()
         # Filter the dataset based on the high LoE level
-    # df = filter_by_high_loe(df, 3)
+    df = filter_by_high_loe(df, 3)
     results=[]
     references=[]
     correct = 0
@@ -30,11 +31,11 @@ def loe_evaluation(df):
         loe = row["loe"]
 
         relevant_chunks = str(evidences)
-        # stuffed_context_with_loe = "".join(
-        #     f"Level of Evidence {int(loe) if pd.notna(loe) else 'Unknown'} , {relevant_chunks}"
-        # )
+        stuffed_context_with_loe = "".join(
+            f"Level of Evidence {int(loe) if pd.notna(loe) else 'Unknown'} , {relevant_chunks}"
+        )
         evidence_augmented_inputs = get_formatted_input(
-            prompt, None)
+            prompt, stuffed_context_with_loe)
 
         model = get_model(GENERATOR_MODEL_ID)
         
@@ -55,7 +56,7 @@ def loe_evaluation(df):
 
     rouge = evaluate.load('rouge')
     rouge = rouge.compute(predictions=results,references=references)
-    print('rouge =====' , rouge)  
+
 
     total = len(df)
     # acc = correct / total

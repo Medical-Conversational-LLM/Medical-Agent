@@ -5,6 +5,7 @@ import numpy as np
 from tqdm import tqdm
 import ast
 import pandas as pd
+import evaluate
 
 from .metrics import match
 from .utils import control_tokens
@@ -86,7 +87,7 @@ def get_formatted_input(messages, context):
                     f"""\
 
         Each question below is accompanied by contextual information tagged with its specific Level of Evidence. As you formulate answers, please ensure that they are informed by and reflect the level of evidence provided.\
-
+        Example :\
         Question:Does a diet rich in antioxidants and low in saturated fats reduce the risk of Alzheimer's disease?\
         Context: Level of Evidence 1. Research from controlled trials suggests that diets rich in antioxidants and low in saturated fats may help reduce the risk of cognitive decline and dementia.\
         Answer with Source: Yes, a diet rich in antioxidants and low in saturated fats can reduce the risk of Alzheimer's disease. Such diets promote brain health by minimizing inflammation and oxidative stress, which are critical factors contributing to cognitive decline and the onset of Alzheimer's disease. Antioxidants help neutralize free radicals, while healthy fats support overall brain function and structure. Therefore, maintaining a diet with these characteristics can significantly mitigate the risk factors associated with Alzheimer's disease.\
@@ -341,11 +342,12 @@ def call_model_rerank_w_scores_batch(prompt, evidences, loe,  max_new_tokens=128
 
 
 def run_pipeline(df, ret_tokens, rel_tokens, grd_tokens=None, ut_tokens=None, max_new_tokens=128, use_seqscore=False, threshold=0.5,
-                 w_rel=1.0, w_sup=1.0, w_use=0.5, mode="always_retrieve", closed=False):
+                 w_rel=1.0, w_sup=1.0, w_use=0.5, mode="no_retrieval", closed=False):
 
     correct = 0
     no_retrieval = 0
-
+    references=[]
+    predictions=[]
     for index, row in tqdm(df.iterrows(), total=len(df)):
 
         prompt = row["question"]
@@ -366,10 +368,17 @@ def run_pipeline(df, ret_tokens, rel_tokens, grd_tokens=None, ut_tokens=None, ma
 
         if match(answer, row["answer"]) == 1:
             correct += 1
+    
 
+    predictions.append(answer)
+    references.append(evidences) 
     total = len(df)
     acc = correct / total
     no_retrieval_pct = no_retrieval / total
+
+    rouge = evaluate.load('rouge')
+    rouge = rouge.compute(predictions=predictions,references=references)
+    print('rouge =====' , rouge)  
 
     print(
         f"Total: {total}, Correct: {correct}, Accuracy: {acc:.4f}, No Retrievals: {no_retrieval_pct:.4f}")

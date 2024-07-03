@@ -7,8 +7,8 @@ from utils import get_llama_formatted_prompt, list_available_devices
 
 torch.cuda.empty_cache()
 
-base_model = AutoModelForCausalLM.from_pretrained(
-    "nvidia/Llama3-ChatQA-1.5-8B")
+base_model_name = "nvidia/Llama3-ChatQA-1.5-8B"
+base_model = AutoModelForCausalLM.from_pretrained(base_model_name)
 
  
 class Pretrained(Inference):
@@ -18,7 +18,10 @@ class Pretrained(Inference):
     def __init__(self, model_name: str) -> None:
         super().__init__()
 
-        self.model = PeftModel.from_pretrained(base_model,
+        if model_name == base_model_name:
+            self.model = base_model
+        else:
+            self.model = PeftModel.from_pretrained(base_model,
                                                model_name,
                                                torch_dtype=torch.bfloat16,
                                                attn_implementation="flash_attention_2"

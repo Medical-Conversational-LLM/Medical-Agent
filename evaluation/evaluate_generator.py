@@ -9,7 +9,7 @@ from transformers import AutoTokenizer
 
 def evaluate_generator(df):
 
-    df=df[0:300]
+    df=df[600:]
     references=[]
     predictions=[]
     correct = 0
@@ -25,13 +25,22 @@ def evaluate_generator(df):
         evidence_augmented_inputs = get_formatted_input(prompt, stuffed_context_with_loe)
 
         model = get_model(GENERATOR_MODEL_ID)
-        print('evidence_augmented_inputs == ',evidence_augmented_inputs)
 
         pred_text, preds = model.completion(
             evidence_augmented_inputs, output_scores=True,max_new_tokens=512)
         
         predictions.append(pred_text)
         references.append(evidences) 
+        import json
+
+        data = {
+            "predictions": predictions,
+            "references": references
+        }
+
+        # Save to a JSON file
+        with open("output1.json", "w") as file:
+            json.dump(data, file, indent=4)
 
         if match(pred_text, row["answer"]) == 1:
             correct += 1
@@ -53,16 +62,18 @@ def evaluate_generator(df):
         
     total = len(df)
     acc = correct / total
-
+    print('predictions =' ,  predictions)
+    print('references = ', references)
     print(
         f"Total: {total}, Correct: {correct}, Accuracy: {acc:.4f}")
+    print('len ',len(references))
     
     # cleaned_answers= clean_and_extract_answers(predictions)
-    trimmed_text = trim_all_responses(predictions)
+    # trimmed_text = trim_all_responses(predictions)
     # pred_tokens = normalize_text(trimmed_text).split()
     # truth_tokens = normalize_text(predictions).split()
 
-    print('predictions =' ,  predictions, ' \n \n references = ', references)
+    # print('predictions =' ,  predictions, ' \n \n references = ', references)
     
     return predictions,  references  
 

@@ -83,13 +83,13 @@ def create_chat(data):
 
     query = data['message']['content']
     model = data['model'] if "model" in data else ""
-    available_models = ['rag', 'self-reflective']
+    available_models = ['rag', 'self-reflective','medline']
     if model not in available_models:
         model = "self-reflective"
 
     results = run_graph_concurrently(
         query=query,
-        chat_history=chat_history,
+        chat_history=chat_history[::3],
         temperature=temperature,
         top_k=top_k,
         top_p=top_p,

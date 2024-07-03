@@ -9,10 +9,12 @@ import pandas as pd
 from datasets import Dataset
 from transformers import AutoModelForCausalLM,BitsAndBytesConfig,AutoTokenizer, AutoModelForCausalLM, GPT2Config
 
-
-model_id = "NousResearch/Llama-2-7b-chat-hf"
+model_id="nvidia/Llama3-ChatQA-1.5-8B"
+# model_id = "NousResearch/Llama-2-7b-chat-hf"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16, device_map="auto")
+
+# df= pd.read_csv('storage/datasets/updated_PubMedQA_pqa_artificial.csv', low_memory=False)
 
 df= pd.read_csv('storage/datasets/generator_updated_PubMedQA_pqa_artificial.csv', low_memory=False)
 df = Dataset.from_pandas(df)

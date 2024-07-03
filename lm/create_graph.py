@@ -67,29 +67,15 @@ def create_graph():
     )
     graph.add_edge("check_retrieval", "generate", condition=False)
 
-    graph.add_edge(
-        "vector_db",
-        "elasticsearch",
-        condition=lambda result: len(result['documents']) < MIN_RELEVANT_TO_WEB_SEARCH,
-        out=lambda input, result: ({**input, **result}),
-    )
-    graph.add_edge(
-        "vector_db",
-        "generate",
-        out=lambda input, result: ({**input, **result}),
-        condition=lambda result: len(result) >= MIN_RELEVANT_TO_WEB_SEARCH,
-        description="docs > 0"
-    )
-    graph.add_edge(
-        "elasticsearch",
-        "web_search",
-        out=lambda input, result: ({**input, "documents": input["documents"] + result}),
-    )
-
- 
+    # graph.add_edge(
+    #     "vector_db",
+    #     "web_search",
+    #     condition=lambda result: len(result['documents']) < MIN_RELEVANT_TO_WEB_SEARCH,
+    #     out=lambda input, result: ({**input, **result}),
+    # )
 
     graph.add_edge(
-        "web_search",
+        "vector_db",
         "generate",
         out=lambda input, result: ({**input, "documents": result}),
         condition=lambda result: len(result) > 0,
@@ -164,5 +150,34 @@ def create_rag_graph():
                        **input,
                        "result": result
                    }))
+
+    return graph
+
+
+def create_medline_graph():
+
+    graph = Graph()
+
+    setup_graph_memory(graph)
+
+    graph.add_node("medline", elasticsearch_node)
+    graph.add_node("generate", generate)
+    graph.add_node("stream_results", stream_results)
+  
+
+    graph.add_edge(
+            "medline",
+            "generate",
+            out=lambda input, result: ({**input, "documents": result}),
+            condition=lambda result: len(result) > 0,
+            description="docs > 0"
+        )
+
+    graph.add_edge("generate", "stream_results",
+                    out=lambda input, result: ({
+                        **input,
+                        "result": result
+                    }))
+
 
     return graph

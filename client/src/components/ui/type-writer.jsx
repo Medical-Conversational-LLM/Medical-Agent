@@ -8,6 +8,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
+
 export function TypeWriter({ content, enabled }) {
   const [typingContent, setTypingContent] = useState("");
 
@@ -30,8 +31,8 @@ export function TypeWriter({ content, enabled }) {
         console.log("children", children)
         const match = /loe/.exec(className || '')
         return match ? (
-          <div>
-            <LevelOfEvidence selected={children?.replace?.("\n", "")?.trim?.()} />
+          <div> 
+            <LevelOfEvidence selected={children} />
           </div>
         ) : (
           <code {...rest} className={className}>
@@ -62,6 +63,12 @@ export function TypeWriter({ content, enabled }) {
 
 
 const LevelOfEvidence = ({ selected }) => {
+
+  selected = selected?.replace?.("\n", "")?.trim?.()
+
+
+  if(!selected) return null
+
   const levels = [
     {
       label: "1a",
