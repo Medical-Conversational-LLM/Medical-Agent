@@ -1,5 +1,5 @@
 from tinydb import TinyDB, table
-from cache import Cache
+from cache.cache import Cache
 from typing import Any
 import hashlib
 

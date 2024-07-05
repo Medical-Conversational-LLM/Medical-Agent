@@ -16,7 +16,7 @@ echo "Running server in $ENV environment"
 
 if [ "$ENV" == "prod" ]; then
     echo "Starting server in production mode..."
-    gunicorn --workers 1 --timeout 500  --worker-class gevent --bind $FLASK_RUN_HOST:$FLASK_RUN_PORT $(basename $FLASK_APP .py):app
+    gunicorn --workers 1 --timeout 500  --worker-class gevent --bind 0.0.0.0:8041 web.py:app
 else
     echo "Starting server in development mode..."
     flask run

@@ -4,7 +4,6 @@ Large language models (LLMs) have recently shown capabilities in answering conve
 # Demo:
 http://134.91.35.190:8040/
 
-
 # Content
 #### [Setup](#setup)
 #### [LLM](https://github.com/HlaHusain/Medical-Conversational-LLM/tree/main/lm#readme)

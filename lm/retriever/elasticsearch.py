@@ -49,7 +49,7 @@ def elasticsearch_search_documents(query: str):
 
          for item in response["hits"]["hits"]]
 
-    except:
+    except Exception as  error: 
         print("failed to call elasticsearch")
         return []
 
