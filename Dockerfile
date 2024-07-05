@@ -42,11 +42,11 @@ RUN cd client && npm install && npm run build
 
 RUN conda env create -f environment.yml && conda clean -a -y
 
-RUN echo "conda activate self-rag3" >> ~/.bashrc
-ENV PATH /opt/conda/envs/self-rag3/bin:$PATH
-ENV CONDA_DEFAULT_ENV $self-rag3
+RUN echo "conda activate self-reflective" >> ~/.bashrc
+ENV PATH /opt/conda/envs/self-reflective/bin:$PATH
+ENV CONDA_DEFAULT_ENV $self-reflective
 
-SHELL ["conda", "run", "-n", "self-rag3", "/bin/bash", "-c"]
+SHELL ["conda", "run", "-n", "self-reflective", "/bin/bash", "-c"]
 
 RUN rm /etc/nginx/sites-enabled/default
 COPY nginx.conf /etc/nginx/sites-enabled/nginx.conf

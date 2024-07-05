@@ -1,4 +1,4 @@
-name: self-rag3
+name: self-reflective
 channels:
   - conda-forge
   - defaults
@@ -171,4 +171,4 @@ dependencies:
       - yarl==1.9.4
       - zope-event==5.0
       - zope-interface==6.4.post2
-prefix: /opt/conda/envs/self-rag3
+prefix: /opt/conda/envs/self-reflective

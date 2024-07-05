@@ -1,7 +1,7 @@
 #!/bin/bash
 source /opt/conda/etc/profile.d/conda.sh
     
-conda activate self-rag3
+conda activate self-reflective
 
 python /app/create_medical_records_index.py
 

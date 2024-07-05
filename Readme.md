@@ -11,6 +11,51 @@ http://134.91.35.190:8040/
 
 # Setup & Installation
 
+# Using Docker
+
+## NVIDIA Container Toolkit
+
+We need to install the NVIDIA Container Toolkit on the host os to allow docker use the gpu.
+
+```
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+```
+
+```
+sudo apt-get update
+```
+```
+sudo apt-get install -y nvidia-docker2
+```
+
+```
+sudo systemctl restart docker
+```
+
+### Build Docker Image
+
+```
+docker build -t self-reflective .
+```
+
+## Run Docker Container
+```
+docker run -d --gpus all -p 8140:80 self-reflective
+```
+
+## Access the website
+```
+http://134.91.35.190:8140/
+```
+
+
+> Make sure to expose 8140 to accept incoming requests
+
+
+
+## Manual Installation
 ```
 conda env create -f environment.yml
 conda activate self-reflective-llm
